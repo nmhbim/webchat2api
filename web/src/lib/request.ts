@@ -34,7 +34,7 @@ function authSessionFailureMessage(payload: ErrorPayload | undefined): string {
         errorMessageFromValue(payload?.error) ||
         payload?.message ||
         "";
-    return message.includes("密钥无效") || message.includes("已失效") || message.includes("重新登录") ? message : "";
+    return message.includes("invalid key") || message.includes("expired") || message.includes("re-login") || message.includes("密钥无效") || message.includes("已失效") || message.includes("重新登录") ? message : "";
 }
 
 export const request = axios.create({
@@ -76,7 +76,7 @@ request.interceptors.response.use(
             errorMessageFromValue(payload?.error) ||
             payload?.message ||
             error.message ||
-            `请求失败 (${status || 500})`;
+            `Request failed (${status || 500})`;
         return Promise.reject(new Error(message));
     },
 );

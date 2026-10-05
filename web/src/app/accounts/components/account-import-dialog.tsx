@@ -200,7 +200,7 @@ function readFileAsText(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-    reader.onerror = () => reject(reader.error ?? new Error(`读取文件失败: ${file.name}`));
+    reader.onerror = () => reject(reader.error ?? new Error(`Failed to read file: ${file.name}`));
     reader.readAsText(file);
   });
 }
@@ -209,9 +209,9 @@ function methodTitle(method: AccountImportMethod, provider: ImportProvider) {
   const definition = getAccountProviderDefinition(provider);
   if (method === "token") return definition.importTokenCopy.label;
   if (method === "session") return definition.importSessionCopy.label;
-  if (method === "cpa") return "本地 JSON 文件";
-  if (method === "remote-cpa") return "远程 CPA 服务器";
-  return "Sub2API 服务器";
+  if (method === "cpa") return "Local JSON Files";
+  if (method === "remote-cpa") return "Remote CPA Server";
+  return "Sub2API Server";
 }
 
 function methodDescription(method: AccountImportMethod, provider: ImportProvider) {
@@ -293,14 +293,14 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
     const normalizedTokens = tokens.map((item) => item.trim()).filter(Boolean);
 
     if (normalizedTokens.length === 0 && accountPayloads.length === 0) {
-      toast.error("请先提供至少一个可用凭据");
+      toast.error("Please provide at least one valid credential");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const data = await createAccounts(normalizedTokens, accountPayloads, importProvider);
-      const refreshText = providerDefinition.refresh.enabled ? `已自动刷新 ${providerDefinition.label} 账号信息` : "按提交内容加入号池";
+      const refreshText = providerDefinition.refresh.enabled ? `Automatically refreshed ${providerDefinition.label} account info` : "Added to pool with submitted content";
       await onImported(data.items, importProvider);
       setOpen(false);
       resetState();
@@ -308,13 +308,13 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       if ((data.errors?.length ?? 0) > 0) {
         const firstError = data.errors?.[0]?.error;
         toast.error(
-          `${successText ?? "导入完成"}，新增 ${data.added ?? 0} 个，已刷新 ${data.refreshed ?? 0} 个，失败 ${data.errors?.length ?? 0} 个${firstError ? `，首个错误：${firstError}` : ""}`,
+          `${successText ?? "Import completed"}，Added ${data.added ?? 0} ，Refreshed ${data.refreshed ?? 0} ，Failed ${data.errors?.length ?? 0} ${firstError ? `，First error：${firstError}` : ""}`,
         );
       } else {
-        toast.success(`${successText ?? "导入完成"}，新增 ${data.added ?? 0} 个，跳过 ${data.skipped ?? 0} 个重复项，${refreshText}`);
+        toast.success(`${successText ?? "Import completed"}，Added ${data.added ?? 0} ，Skipped ${data.skipped ?? 0} duplicate items，${refreshText}`);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "导入账户失败";
+      const message = error instanceof Error ? error.message : "Failed to import accounts";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -341,7 +341,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
   };
 
   const showInvalidGrokImportToast = () => {
-    toast.error("Grok 每行仅支持裸 SSO 值或单个 sso=完整值；不支持 sso-rw、完整 Cookie header 或其他 name=value。");
+    toast.error("Grok only supports raw SSO values or single sso=value per line; sso-rw, full Cookie headers, or other name=value pairs are not supported.");
   };
 
   const buildGeminiSessionPayload = (secure1Psid: string, secure1Psidts: string): AccountImportPayload => {
@@ -382,7 +382,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       const tokens = normalizeImportTokens(rawTokens);
 
       if (tokens.length === 0) {
-        toast.error("TXT 文件里没有读取到有效凭据");
+        toast.error("No valid credentials found in TXT file");
         return;
       }
 
@@ -390,9 +390,9 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
         const next = [...splitTokens(prev), ...tokens];
         return next.join("\n");
       });
-      toast.success(`已从 ${file.name} 读取 ${tokens.length} 个凭据`);
+      toast.success(`Loaded ${tokens.length} credentials from ${file.name}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "读取 TXT 文件失败";
+      const message = error instanceof Error ? error.message : "Failed to read TXT file";
       toast.error(message);
     }
   };
@@ -405,11 +405,11 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       const secure1Psidts = geminiSecure1Psidts.trim();
 
       if (!secure1Psid || !secure1Psidts) {
-        toast.error("请分别填写 __Secure-1PSID 和 __Secure-1PSIDTS 的值");
+        toast.error("Please enter values for both __Secure-1PSID and __Secure-1PSIDTS");
         return;
       }
       if (secure1Psid.includes("=") || secure1Psid.includes(";") || secure1Psidts.includes("=") || secure1Psidts.includes(";")) {
-        toast.error("只填写等号右侧的 cookie 值，不要包含 cookie 名称或分号");
+        toast.error("Enter only the cookie value to the right of '=', without cookie name or semicolons");
         return;
       }
 
@@ -431,7 +431,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
     }
 
     if (!sessionInput.trim()) {
-      toast.error(sessionCopy.emptyMessage ?? "请先粘贴完整 Session JSON");
+      toast.error(sessionCopy.emptyMessage ?? "Please paste full Session JSON first");
       return;
     }
 
@@ -440,13 +440,13 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       const token = getSessionAccessToken(payload);
 
       if (!token) {
-        toast.error("未从 GPT Session JSON 中提取到 accessToken");
+        toast.error("No accessToken extracted from GPT Session JSON");
         return;
       }
 
       await submitTokens([token], sessionCopy.successLabel, buildTokenPayloads([token]));
     } catch (error) {
-      const message = error instanceof Error ? error.message : (sessionCopy.parseErrorMessage ?? "Session JSON 解析失败");
+      const message = error instanceof Error ? error.message : (sessionCopy.parseErrorMessage ?? "Failed to parse Session JSON");
       toast.error(message);
     }
   };
@@ -475,14 +475,14 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       const errorCount = results.length - parsedFileCount;
 
       if (parsedFileCount === 0) {
-        toast.error("这些 JSON 文件里没有读取到可用凭据");
+        toast.error("No usable credentials found in these JSON files");
         return;
       }
 
       setPendingCpaImport({ tokens, accounts, parsedFileCount, errorCount });
       setConfirmOpen(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "读取 JSON 文件失败";
+      const message = error instanceof Error ? error.message : "Failed to read JSON files";
       toast.error(message);
     }
   };
@@ -527,7 +527,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
           className="inline-flex items-center gap-1 text-sm text-stone-500 transition hover:text-stone-800"
         >
           <ArrowLeft className="size-4" />
-          返回选择服务商
+          Back to Provider Selection
         </button>
         <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
           {providerDefinition.importFlowCopy.methodIntro}
@@ -576,9 +576,9 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
               className="inline-flex items-center gap-1 text-sm text-stone-500 transition hover:text-stone-800"
             >
               <ArrowLeft className="size-4" />
-              返回导入方式
+              Back to Import Methods
             </button>
-            <span className="text-xs text-stone-400">当前识别 {tokenCount} 个凭据</span>
+            <span className="text-xs text-stone-400">Recognized {tokenCount} credentials from</span>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-stone-700">{tokenCopy.label}</label>
@@ -592,12 +592,12 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
           <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                <div className="text-sm font-medium text-stone-800">从 TXT 文件导入</div>
+                <div className="text-sm font-medium text-stone-800">Import from TXT File</div>
                 <div className="text-sm leading-6 text-stone-500">{tokenCopy.fileHelp}</div>
               </div>
               <Button type="button" variant="outline" className="rounded-xl border-stone-200 bg-white" onClick={() => txtInputRef.current?.click()} disabled={isSubmitting}>
                 <FileText className="size-4" />
-                选择 TXT
+                Select TXT
               </Button>
             </div>
           </div>
@@ -617,25 +617,25 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
             className="inline-flex items-center gap-1 text-sm text-stone-500 transition hover:text-stone-800"
           >
             <ArrowLeft className="size-4" />
-            返回导入方式
+            Back to Import Methods
           </button>
           <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
             {sessionCopy.parseJsonAccessToken && sessionCopy.sessionUrl ? (
               <>
-                打开{" "}
+                Open{" "}
                 <a href={sessionCopy.sessionUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-stone-900 underline underline-offset-4">
                   {sessionCopy.sessionUrl}
                   <ExternalLink className="size-3.5" />
                 </a>
-                ，复制页面返回的完整 JSON，系统会自动提取其中的 accessToken 导入。
+                , copy the full JSON response, and the system will automatically extract and import the accessToken.
               </>
             ) : (
               sessionCopy.help
             )}
           </div>
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-            <div className="font-medium">风险提示</div>
-            <div>不要使用自己的大号，尽量使用不常用的小号进行导入，避免出现封号风险。本项目不承担任何封号风险责任。</div>
+            <div className="font-medium">Risk Warning</div>
+            <div>Do not use primary personal accounts. Use disposable or secondary accounts to minimize ban risk. This project assumes no liability for account suspensions.</div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             {importProvider === "gemini" ? (
@@ -645,20 +645,20 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
                   <Input
                     value={geminiSecure1Psid}
                     onChange={(event) => setGeminiSecure1Psid(event.target.value)}
-                    placeholder="只填写 __Secure-1PSID 的值"
+                    placeholder="Enter only the __Secure-1PSID value"
                     className="h-11 rounded-xl border-stone-200 bg-white font-mono text-xs"
                   />
-                  <p className="text-xs leading-5 text-stone-500">不要包含 cookie 名称，只粘贴等号右侧的完整值。</p>
+                  <p className="text-xs leading-5 text-stone-500">Do not include cookie name; paste only the value to the right of '='.</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-stone-700">__Secure-1PSIDTS</label>
                   <Input
                     value={geminiSecure1Psidts}
                     onChange={(event) => setGeminiSecure1Psidts(event.target.value)}
-                    placeholder="只填写 __Secure-1PSIDTS 的值"
+                    placeholder="Enter only the __Secure-1PSIDTS value"
                     className="h-11 rounded-xl border-stone-200 bg-white font-mono text-xs"
                   />
-                  <p className="text-xs leading-5 text-stone-500">必填；不要包含 cookie 名称，只粘贴等号右侧的完整值。</p>
+                  <p className="text-xs leading-5 text-stone-500">Required; do not include cookie name; paste only the value to the right of '='.</p>
                 </div>
               </>
             ) : (
@@ -686,22 +686,22 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
             className="inline-flex items-center gap-1 text-sm text-stone-500 transition hover:text-stone-800"
           >
             <ArrowLeft className="size-4" />
-            返回导入方式
+            Back to Import Methods
           </button>
           <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-5">
             <div className="space-y-2">
-              <div className="text-sm font-medium text-stone-800">多选本地 JSON 文件</div>
+              <div className="text-sm font-medium text-stone-800">Select Multiple Local JSON Files</div>
               <div className="text-sm leading-6 text-stone-500">{providerDefinition.importFlowCopy.cpaHelp}</div>
             </div>
             <Button type="button" className="mt-4 rounded-xl bg-stone-950 text-white hover:bg-stone-800" onClick={() => cpaInputRef.current?.click()} disabled={isSubmitting}>
               <Files className="size-4" />
-              选择多个 JSON 文件
+              Select Multiple JSON Files
             </Button>
           </div>
           <input ref={cpaInputRef} type="file" accept=".json,application/json" multiple className="hidden" onChange={(event) => void handleCpaSelected(event)} />
           {pendingCpaImport ? (
             <div className="rounded-2xl border border-stone-200 bg-white p-4 text-sm leading-6 text-stone-600">
-              最近一次读取到 {pendingCpaImport.parsedFileCount} 个凭据{pendingCpaImport.errorCount > 0 ? `，另有 ${pendingCpaImport.errorCount} 个文件未提取成功` : ""}。
+              Latest read: {pendingCpaImport.parsedFileCount} credentials from{pendingCpaImport.errorCount > 0 ? `, additionally ${pendingCpaImport.errorCount} files failed to parse` : ""}。
             </div>
           ) : null}
         </div>
@@ -715,8 +715,8 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
   const selectedTokenCopy = providerDefinition.importTokenCopy;
   const selectedSessionCopy = providerDefinition.importSessionCopy;
   const title = useMemo(() => {
-    if (method === "provider") return "选择导入服务商";
-    if (method === "methods" || !availableMethods.includes(method)) return `${providerDefinition.label} 导入方式`;
+    if (method === "provider") return "Select Import Provider";
+    if (method === "methods" || !availableMethods.includes(method)) return `${providerDefinition.label} Import Methods`;
     return `${providerDefinition.label} ${methodTitle(method, importProvider)}`;
   }, [availableMethods, importProvider, method, providerDefinition.label]);
 
@@ -725,13 +725,13 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <Button className="h-10 rounded-xl bg-stone-950 px-4 text-white hover:bg-stone-800" onClick={() => setOpen(true)} disabled={disabled}>
           <Upload className="size-4" />
-          导入
+          Import
         </Button>
         <DialogContent showCloseButton={false} className="max-h-[88vh] overflow-y-auto rounded-2xl p-6 sm:max-w-2xl">
           <DialogHeader className="gap-2">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              {method === "provider" ? "先选择服务商，再展示该服务商支持的导入方式和字段说明。" : providerDefinition.importFlowCopy.methodIntro}
+              {method === "provider" ? "Select a provider first to see supported import methods and field guidelines." : providerDefinition.importFlowCopy.methodIntro}
             </DialogDescription>
           </DialogHeader>
 
@@ -739,11 +739,11 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
 
           <DialogFooter className="pt-2">
             <Button variant="secondary" className="h-10 rounded-xl bg-stone-100 px-5 text-stone-700 hover:bg-stone-200" onClick={() => setOpen(false)} disabled={footerDisabled}>
-              取消
+              Cancel
             </Button>
             {method !== "provider" && (
               <Button variant="outline" className="h-10 rounded-xl border-stone-200 bg-white px-5 text-stone-700" onClick={() => setMethod("provider")} disabled={footerDisabled}>
-                切换服务商
+                Switch Provider
               </Button>
             )}
             {method === "token" ? (
@@ -764,7 +764,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
                 onClick={() => setConfirmOpen(true)}
                 disabled={footerDisabled || !pendingCpaImport}
               >
-                查看导入确认
+                Review Import
               </Button>
             ) : null}
           </DialogFooter>
@@ -774,23 +774,23 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="rounded-2xl p-6">
           <DialogHeader className="gap-2">
-            <DialogTitle>确认导入 {providerDefinition.label} JSON</DialogTitle>
+            <DialogTitle>Confirm Import {providerDefinition.label} JSON</DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              {pendingCpaImport ? `确认识别到 ${pendingCpaImport.parsedFileCount} 个凭据，是否确认导入到 ${providerDefinition.label}？` : "尚未读取到可导入凭据。"}
-              {pendingCpaImport?.errorCount ? `，另有 ${pendingCpaImport.errorCount} 个文件未提取成功。` : "。"}
+              {pendingCpaImport ? `Confirmed recognition of ${pendingCpaImport.parsedFileCount} credentials from，credentials. Confirm import to ${providerDefinition.label}？` : "No importable credentials found yet."}
+              {pendingCpaImport?.errorCount ? `, additionally ${pendingCpaImport.errorCount} files failed to parse。` : "。"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-2">
             <Button variant="secondary" className="h-10 rounded-xl bg-stone-100 px-5 text-stone-700 hover:bg-stone-200" onClick={() => setConfirmOpen(false)} disabled={isSubmitting}>
-              返回
+              Back
             </Button>
             <Button
               className="h-10 rounded-xl bg-stone-950 px-5 text-white hover:bg-stone-800"
-              onClick={() => void submitTokens(pendingCpaImport?.tokens ?? [], `${providerDefinition.label} JSON 导入完成`, pendingCpaImport?.accounts ?? [])}
+              onClick={() => void submitTokens(pendingCpaImport?.tokens ?? [], `${providerDefinition.label} JSON import completed`, pendingCpaImport?.accounts ?? [])}
               disabled={isSubmitting || !pendingCpaImport}
             >
               {isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : null}
-              确认导入
+              Confirm Import
             </Button>
           </DialogFooter>
         </DialogContent>

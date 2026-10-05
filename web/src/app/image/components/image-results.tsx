@@ -126,17 +126,17 @@ export function ImageResults({
                 '"Palatino Linotype","Book Antiqua","URW Palladio L","Times New Roman",serif',
             }}
           >
-            在同一窗口里保留本地历史与任务状态，并从已有结果图继续发起新的无状态编辑。
+            Keep local history and task status in one window, and branch edits from existing images.
           </p>
           <div className="mx-auto mt-6 grid max-w-xl gap-2 text-left text-xs text-stone-500 sm:grid-cols-3">
             <span className="rounded-2xl border border-stone-200/80 bg-white/70 px-3 py-2">
-              1. 写提示词
+              1. Enter Prompt
             </span>
             <span className="rounded-2xl border border-stone-200/80 bg-white/70 px-3 py-2">
-              2. 可粘贴参考图
+              2. Optionally attach Reference Image
             </span>
             <span className="rounded-2xl border border-stone-200/80 bg-white/70 px-3 py-2">
-              3. 结果可继续编辑
+              3. Generated results can be edited further
             </span>
           </div>
         </div>
@@ -147,8 +147,8 @@ export function ImageResults({
   return (
     <div className="mx-auto flex w-full max-w-[980px] flex-col gap-5 sm:gap-8">
       {selectedConversation.turns.map((turn, turnIndex) => {
-        const turnLabel = `第 ${turnIndex + 1} 轮`;
-        const modeLabel = turn.mode === "edit" ? "编辑图" : "文生图";
+        const turnLabel = `Turn ${turnIndex + 1}`;
+        const modeLabel = turn.mode === "edit" ? "Image Edit" : "Text to Image";
         const referenceLightboxImages = turn.referenceImages.map(
           (image, index) => ({
             id: `${turn.id}-reference-${index}`,
@@ -192,7 +192,7 @@ export function ImageResults({
                       }
                       className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-600 transition hover:bg-stone-200 hover:text-stone-900"
                     >
-                      复用配置
+                      Reuse Config
                     </button>
                     <button
                       type="button"
@@ -200,7 +200,7 @@ export function ImageResults({
                         onDeletePrompt(selectedConversation.id, turn.id)
                       }
                       className="inline-flex size-6 items-center justify-center rounded-full text-stone-300 transition hover:bg-rose-50 hover:text-rose-500"
-                      aria-label="删除提示词记录"
+                      aria-label="Delete Prompt Record"
                     >
                       <Trash2 className="size-3" />
                     </button>
@@ -215,7 +215,7 @@ export function ImageResults({
                   {turn.referenceImages.length > 0 ? (
                     <div className="mb-4 flex flex-col items-end border-b border-stone-200/70 px-3 pb-3">
                       <div className="mb-3 text-xs font-medium text-stone-500">
-                        本轮参考图
+                        Current Turn Reference Images
                       </div>
                       <div className="flex flex-wrap justify-end gap-3">
                         {turn.referenceImages.map((image, index) => (
@@ -229,11 +229,11 @@ export function ImageResults({
                                 onOpenLightbox(referenceLightboxImages, index)
                               }
                               className="group relative h-24 w-24 overflow-hidden border border-stone-200/80 bg-stone-100/60 text-left transition hover:border-stone-300"
-                              aria-label={`预览参考图 ${image.name || index + 1}`}
+                              aria-label={`Preview reference image ${image.name || index + 1}`}
                             >
                               <img
                                 src={image.dataUrl}
-                                alt={image.name || `参考图 ${index + 1}`}
+                                alt={image.name || `Reference Image ${index + 1}`}
                                 className="absolute inset-0 h-full w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                               />
                             </button>
@@ -246,7 +246,7 @@ export function ImageResults({
                               }
                             >
                               <Sparkles className="size-4" />
-                              加入编辑
+                              Add to Edit
                             </Button>
                           </div>
                         ))}
@@ -256,7 +256,7 @@ export function ImageResults({
 
                   <div className="mb-3 flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500 sm:mb-4 sm:gap-2 sm:text-xs">
                     <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1">
-                      {turn.count} 张
+                      {turn.count} 
                     </span>
                     <span className="rounded-full border border-stone-200 bg-white/80 px-3 py-1">
                       {turn.size}
@@ -269,7 +269,7 @@ export function ImageResults({
                     </span>
                     {turn.status === "queued" ? (
                       <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
-                        等待当前对话中的前序任务完成
+                        Waiting for prior jobs in this session to complete
                       </span>
                     ) : null}
                   </div>
@@ -319,7 +319,7 @@ export function ImageResults({
                             </button>
                             <div className="flex flex-col gap-1 px-1 py-2 text-[10px] sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3 sm:py-3 sm:text-xs">
                               <div className="min-w-0 text-stone-500">
-                                <span>结果 {index + 1}</span>
+                                <span>Result {index + 1}</span>
                                 {imageMeta ? (
                                   <span className="block text-stone-400 sm:ml-2 sm:inline">
                                     {imageMeta}
@@ -337,11 +337,11 @@ export function ImageResults({
                                       image,
                                     )
                                   }
-                                  aria-label="加入编辑"
+                                  aria-label="Add to Edit"
                                 >
                                   <Sparkles className="size-3 sm:size-4" />
                                   <span className="hidden sm:inline">
-                                    加入编辑
+                                    Add to Edit
                                   </span>
                                 </Button>
                                 <Button
@@ -351,10 +351,10 @@ export function ImageResults({
                                   onClick={() =>
                                     void downloadStoredImage(image, index)
                                   }
-                                  aria-label="下载"
+                                  aria-label="Download"
                                 >
                                   <Download className="size-3 sm:size-4" />
-                                  <span className="hidden sm:inline">下载</span>
+                                  <span className="hidden sm:inline">Download</span>
                                 </Button>
                               </div>
                             </div>
@@ -381,7 +381,7 @@ export function ImageResults({
                           >
                             <div className="flex h-full min-h-16 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-[11px] leading-4 text-rose-600 sm:gap-3 sm:px-6 sm:py-8 sm:text-sm sm:leading-6">
                               <span className="line-clamp-2 sm:line-clamp-none">
-                                {image.error || "生成失败"}
+                                {image.error || "Generation failed"}
                               </span>
                               <button
                                 type="button"
@@ -394,7 +394,7 @@ export function ImageResults({
                                 }
                                 className="rounded-full bg-white px-2 py-1 text-[10px] font-medium text-rose-600 shadow-sm transition hover:bg-rose-100 sm:px-3 sm:text-xs"
                               >
-                                重新生成这一张
+                                Regenerate this image
                               </button>
                             </div>
                           </div>
@@ -425,7 +425,7 @@ export function ImageResults({
                               )}
                             </div>
                             <p className="text-[10px] leading-4 sm:text-sm">
-                              {turn.status === "queued" ? "排队中" : "处理中"}
+                              {turn.status === "queued" ? "Queued" : "Processing"}
                             </p>
                           </div>
                         </div>
@@ -448,7 +448,7 @@ export function ImageResults({
                       className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 font-medium text-stone-500 transition hover:bg-stone-200 hover:text-stone-900"
                     >
                       <RotateCcw className="size-3" />
-                      全部重新生成
+                      Regenerate All
                     </button>
                     <button
                       type="button"
@@ -456,7 +456,7 @@ export function ImageResults({
                         onDeleteResults(selectedConversation.id, turn.id)
                       }
                       className="inline-flex size-6 items-center justify-center rounded-full text-stone-300 transition hover:bg-rose-50 hover:text-rose-500"
-                      aria-label="删除生成结果"
+                      aria-label="Delete Generated Results"
                     >
                       <Trash2 className="size-3" />
                     </button>
@@ -473,15 +473,15 @@ export function ImageResults({
 
 function getTurnStatusLabel(status: ImageTurnStatus) {
   if (status === "queued") {
-    return "排队中";
+    return "Queued";
   }
   if (status === "generating") {
-    return "处理中";
+    return "Processing";
   }
   if (status === "success") {
-    return "已完成";
+    return "Completed";
   }
-  return "失败";
+  return "Failed";
 }
 
 function formatBase64ImageSize(base64: string) {

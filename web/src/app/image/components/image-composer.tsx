@@ -95,14 +95,14 @@ export function ImageComposer({
   const hasSelectableImageModel =
     imageModels.length > 0 && imageModels.includes(imageModel);
   const imageModelPlaceholder =
-    imageModels.length === 0 ? "暂无可用模型" : "请选择模型";
+    imageModels.length === 0 ? "No models available" : "Please select a model";
   const imageSizeOptions = [
-    { value: "__unset__", label: "未指定" },
-    { value: "1:1", label: "1:1 (正方形)" },
-    { value: "16:9", label: "16:9 (横版)" },
-    { value: "4:3", label: "4:3 (横版)" },
-    { value: "3:4", label: "3:4 (竖版)" },
-    { value: "9:16", label: "9:16 (竖版)" },
+    { value: "__unset__", label: "Default (Auto)" },
+    { value: "1:1", label: "1:1 (Square (1:1))" },
+    { value: "16:9", label: "16:9 (Landscape (16:9))" },
+    { value: "4:3", label: "4:3 (Landscape (16:9))" },
+    { value: "3:4", label: "3:4 (Portrait (9:16))" },
+    { value: "9:16", label: "9:16 (Portrait (9:16))" },
   ];
 
   const handleTextareaPaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
@@ -141,10 +141,10 @@ export function ImageComposer({
           <div className="mb-2 border-b border-stone-200/80 pb-2 sm:mb-3 sm:pb-3">
             <div className="mb-2 flex items-center justify-between gap-2 px-1">
               <span className="text-[11px] font-semibold tracking-[0.14em] text-stone-500 uppercase">
-                参考图
+                Reference Image
               </span>
               <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500">
-                {referenceImages.length} 张
+                {referenceImages.length} 
               </span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
@@ -160,11 +160,11 @@ export function ImageComposer({
                       setLightboxOpen(true);
                     }}
                     className="group size-14 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 transition hover:border-stone-300 sm:size-16"
-                    aria-label={`预览参考图 ${image.name || index + 1}`}
+                    aria-label={`Preview reference image ${image.name || index + 1}`}
                   >
                     <img
                       src={image.dataUrl}
-                      alt={image.name || `参考图 ${index + 1}`}
+                      alt={image.name || `Reference Image ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
                   </button>
@@ -175,7 +175,7 @@ export function ImageComposer({
                       onRemoveReferenceImage(index);
                     }}
                     className="absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-800"
-                    aria-label={`移除参考图 ${image.name || index + 1}`}
+                    aria-label={`Remove reference image ${image.name || index + 1}`}
                   >
                     <X className="size-3" />
                   </button>
@@ -209,10 +209,10 @@ export function ImageComposer({
               <div className="flex w-full items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="shrink-0 rounded-full bg-stone-100 px-2.5 py-1 text-[10px] font-semibold text-stone-600 sm:text-xs">
-                    {referenceImages.length > 0 ? "编辑模式" : "生成模式"}
+                    {referenceImages.length > 0 ? "Edit Mode" : "Generate Mode"}
                   </span>
                   <p className="truncate text-sm font-medium text-stone-600 sm:text-[15px]">
-                    {prompt || "输入想要生成的画面..."}
+                    {prompt || "Describe what you want to generate..."}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -224,7 +224,7 @@ export function ImageComposer({
                       setTimeout(() => textareaRef.current?.focus(), 0);
                     }}
                     className="inline-flex size-8 items-center justify-center rounded-full text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700"
-                    aria-label="展开输入框"
+                    aria-label="Expand input"
                   >
                     <Maximize2 className="size-4" />
                   </button>
@@ -246,8 +246,8 @@ export function ImageComposer({
               onPaste={handleTextareaPaste}
               placeholder={
                 referenceImages.length > 0
-                  ? "描述你希望如何修改参考图"
-                  : "输入你想要生成的画面，也可直接粘贴图片"
+                  ? "Describe how you want to modify the reference image"
+                  : "Describe the image you want to generate, or paste an image"
               }
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
@@ -263,9 +263,9 @@ export function ImageComposer({
               onClick={(event) => event.stopPropagation()}
             >
               <div className="mb-2 hidden items-center justify-between gap-2 text-[11px] font-semibold tracking-[0.14em] text-stone-500 uppercase sm:flex">
-                <span>生成设置</span>
+                <span>Generation Settings</span>
                 <span>
-                  {referenceImages.length > 0 ? "编辑模式" : "生成模式"}
+                  {referenceImages.length > 0 ? "Edit Mode" : "Generate Mode"}
                 </span>
               </div>
               <div className="flex items-end justify-between gap-2 sm:gap-3">
@@ -276,28 +276,28 @@ export function ImageComposer({
                     className="h-9 shrink-0 rounded-full border-stone-200 bg-white/90 px-3 text-xs font-medium text-stone-700 shadow-sm sm:h-10 sm:px-4 sm:text-sm"
                     onClick={onPickReferenceImage}
                     aria-label={
-                      referenceImages.length > 0 ? "添加参考图" : "上传"
+                      referenceImages.length > 0 ? "Add Reference Image" : "Upload"
                     }
                   >
                     <ImagePlus className="size-3.5 sm:size-4" />
                     <span className="hidden sm:inline">
-                      {referenceImages.length > 0 ? "添加参考图" : "上传"}
+                      {referenceImages.length > 0 ? "Add Reference Image" : "Upload"}
                     </span>
                   </Button>
                   <div className="shrink-0 rounded-full border border-amber-200/70 bg-amber-50/80 px-2 py-1 text-[10px] font-medium text-amber-800 sm:px-3 sm:py-2 sm:text-xs">
-                    <span className="hidden sm:inline">剩余额度 </span>
+                    <span className="hidden sm:inline">Remaining Quota </span>
                     {availableQuota}
                   </div>
                   {activeTaskCount > 0 && (
                     <div className="flex shrink-0 items-center gap-1 rounded-full border border-lime-200/70 bg-lime-50/85 px-2 py-1 text-[10px] font-medium text-lime-800 sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs">
                       <LoaderCircle className="size-3 animate-spin" />
                       {activeTaskCount}
-                      <span className="hidden sm:inline"> 个任务处理中</span>
+                      <span className="hidden sm:inline"> jobs processing</span>
                     </div>
                   )}
                   <div className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white/90 px-2 py-0.5 shadow-sm sm:h-auto sm:gap-2 sm:px-3 sm:py-1">
                     <span className="hidden text-[11px] font-medium text-stone-700 sm:inline sm:text-sm">
-                      张数
+                      Count
                     </span>
                     <Input
                       type="number"
@@ -314,7 +314,7 @@ export function ImageComposer({
                   </div>
                   <div className="relative flex h-9 min-w-[150px] shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2 py-0.5 text-[11px] sm:h-auto sm:min-w-[150px] sm:gap-2 sm:px-3 sm:py-1 sm:text-[13px]">
                     <span className="hidden font-medium text-stone-700 sm:inline sm:text-sm">
-                      比例
+                      Ratio
                     </span>
                     <Select
                       value={imageSize === "" ? "__unset__" : imageSize}
@@ -323,7 +323,7 @@ export function ImageComposer({
                       }
                     >
                       <SelectTrigger
-                        aria-label="图片比例"
+                        aria-label="Aspect Ratio"
                         className="h-8 min-w-0 flex-1 rounded-full border-0 bg-transparent px-0 text-xs font-bold text-stone-700 shadow-none focus:ring-0 sm:text-sm"
                       >
                         <SelectValue />
@@ -342,7 +342,7 @@ export function ImageComposer({
                   </div>
                   <div className="flex h-9 min-w-[150px] shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2 py-0.5 sm:h-auto sm:min-w-[178px] sm:gap-2 sm:px-3 sm:py-1">
                     <span className="hidden text-[11px] font-medium text-stone-700 sm:inline sm:text-sm">
-                      服务
+                      Provider
                     </span>
                     <Select
                       value={imageProvider}
@@ -371,7 +371,7 @@ export function ImageComposer({
                   </div>
                   <div className="flex h-9 min-w-[168px] shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2 py-0.5 sm:h-auto sm:min-w-[220px] sm:gap-2 sm:px-3 sm:py-1">
                     <span className="hidden text-[11px] font-medium text-stone-700 sm:inline sm:text-sm">
-                      模型
+                      Model
                     </span>
                     {hasSelectableImageModel ? (
                       <Select
@@ -396,8 +396,8 @@ export function ImageComposer({
                         className="h-8 min-w-0 flex-1 rounded-full border-0 bg-transparent px-0 text-left text-xs font-bold text-stone-400 shadow-none disabled:cursor-not-allowed sm:text-sm"
                         aria-label={
                           imageModels.length === 0
-                            ? "当前服务暂无可用图像模型"
-                            : "请选择图像模型"
+                            ? "No image models available for current provider"
+                            : "Please select an image model"
                         }
                       >
                         {imageModelPlaceholder}
@@ -414,7 +414,7 @@ export function ImageComposer({
                   }
                   className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white shadow-[0_18px_38px_-24px_rgba(68,64,60,0.95)] transition hover:bg-stone-800 hover:shadow-[0_22px_44px_-24px_rgba(68,64,60,0.95)] disabled:cursor-not-allowed disabled:bg-stone-300 disabled:shadow-none sm:size-12"
                   aria-label={
-                    referenceImages.length > 0 ? "编辑图片" : "生成图片"
+                    referenceImages.length > 0 ? "Edit Image" : "Generate Image"
                   }
                 >
                   <ArrowUp className="size-3.5 sm:size-4" />
@@ -432,7 +432,7 @@ export function ImageComposer({
                 setIsCollapsed(true);
               }}
               className="absolute top-3 right-3 z-10 inline-flex size-8 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700 sm:top-4 sm:right-4"
-              aria-label="收起输入框"
+              aria-label="Collapse input"
             >
               <Minimize2 className="size-4" />
             </button>

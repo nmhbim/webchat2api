@@ -157,7 +157,7 @@ function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("读取参考图失败"));
+    reader.onerror = () => reject(new Error("Failed to read reference image"));
     reader.readAsDataURL(file);
   });
 }
@@ -193,7 +193,7 @@ function buildReferenceImageFromResult(
 async function fetchImageAsFile(url: string, fileName: string) {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("读取结果图失败");
+    throw new Error("Failed to load generated image");
   }
   const blob = await response.blob();
   return new File([blob], fileName, { type: blob.type || "image/png" });
@@ -236,7 +236,7 @@ function taskDataToStoredImage(
         ...image,
         taskId: task.id,
         status: "error",
-        error: "未返回图片数据",
+        error: "No image data returned",
       };
     }
     return {
@@ -255,7 +255,7 @@ function taskDataToStoredImage(
       ...image,
       taskId: task.id,
       status: "error",
-      error: task.error || "生成失败",
+      error: task.error || "Generation failed",
     };
   }
 
@@ -423,7 +423,7 @@ function ProviderSelect({
   return (
     <div className="min-w-0 space-y-2">
       <label className="text-xs font-semibold tracking-[0.14em] text-stone-500 uppercase">
-        服务
+        Provider
       </label>
       <Select
         value={value}
@@ -475,9 +475,9 @@ function ModelSelect({
       <label className="text-xs font-semibold tracking-[0.14em] text-stone-500 uppercase">
         {label}
       </label>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={onChange} disabled={models.length === 0}>
         <SelectTrigger className="h-11 rounded-2xl border-stone-200 bg-white/90 text-stone-800 shadow-none">
-          <SelectValue />
+          <SelectValue placeholder={models.length === 0 ? "No models available" : undefined} />
         </SelectTrigger>
         <SelectContent>
           {models.map((model) => (
@@ -501,8 +501,8 @@ function ExperimentModeSwitch({
   return (
     <div className="inline-flex rounded-full border border-stone-200/80 bg-white/70 p-1">
       {[
-        { value: "text" as const, label: "文本试验" },
-        { value: "image" as const, label: "图像试验" },
+        { value: "text" as const, label: "Text Chat Playground" },
+        { value: "image" as const, label: "Image Playground" },
       ].map((item) => (
         <button
           key={item.value}
@@ -528,6 +528,7 @@ function TextExperimentPanel({
   provider,
   model,
   models,
+  providerAvailability,
   isLoading,
   isTestingModels,
   modelTestResults,
@@ -543,6 +544,9 @@ function TextExperimentPanel({
   provider: TestProviderId;
   model: string;
   models: string[];
+  providerAvailability?: Partial<
+    Record<TestProviderId, { disabled: boolean; reason?: string }>
+  >;
   isLoading: boolean;
   isTestingModels: boolean;
   modelTestResults: TextModelTestResult[];
@@ -569,15 +573,15 @@ function TextExperimentPanel({
                 Text to Text
               </div>
               <h2 className="mt-1 text-xl font-semibold tracking-tight text-stone-950">
-                文生文对话试验
+                Text Chat Playground
               </h2>
               <p className="mt-1.5 max-w-xl text-sm leading-6 text-stone-500">
-                像聊天窗口一样连续验证
-                /v1/chat/completions，刷新页面后仍会保留当前对话。
+                Interactively test
+                /v1/chat/completions, persisting across page refreshes.
               </p>
             </div>
             <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-500">
-              {messages.length} 条消息
+              {messages.length} messages
             </span>
           </div>
         </div>
@@ -625,7 +629,7 @@ function TextExperimentPanel({
                 <div className="flex justify-start">
                   <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-md border border-stone-200 bg-white px-4 py-3 text-sm text-stone-500">
                     <LoaderCircle className="size-4 animate-spin" />
-                    正在等待模型响应...
+                    Waiting for model response...
                   </div>
                 </div>
               ) : null}
@@ -638,10 +642,10 @@ function TextExperimentPanel({
                   Empty Thread
                 </div>
                 <p className="mt-2 text-lg font-semibold text-stone-900">
-                  从底部输入第一条文本提示
+                  Enter your first text prompt below
                 </p>
                 <p className="mt-2 max-w-md text-sm leading-6 text-stone-500">
-                  每次发送都会保留在当前聊天窗口中，便于连续比较提示词和模型输出。
+                  Each message is preserved in chat history for comparing prompts and model outputs.
                 </p>
               </div>
             </div>
@@ -659,21 +663,25 @@ function TextExperimentPanel({
                   void onSubmit();
                 }
               }}
-              placeholder="输入要发送给模型的文本，例如：用三句话总结这个服务的用途。"
+              placeholder="Type a message for the model, e.g.: Summarize this service in 3 sentences."
               className="min-h-[92px] resize-none rounded-[18px] border-transparent bg-white px-4 py-3 text-[15px] leading-7 text-stone-900 shadow-none placeholder:text-stone-400 focus-visible:border-stone-200 focus-visible:ring-stone-300"
             />
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="grid min-w-0 flex-1 gap-2 sm:max-w-[520px] sm:grid-cols-[160px_minmax(0,1fr)]">
-                <ProviderSelect value={provider} onChange={onProviderChange} />
+                <ProviderSelect
+                  value={provider}
+                  onChange={onProviderChange}
+                  availability={providerAvailability}
+                />
                 <ModelSelect
                   value={model}
                   models={models}
-                  label="模型"
+                  label="Model"
                   onChange={onModelChange}
                 />
               </div>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <p className="text-xs text-stone-400">Ctrl/⌘ + Enter 发送</p>
+                <p className="text-xs text-stone-400">Ctrl/⌘ + Enter Send</p>
                 <Button
                   className="h-10 rounded-full bg-stone-950 px-5 text-white hover:bg-stone-800"
                   disabled={!prompt.trim() || isLoading}
@@ -684,7 +692,7 @@ function TextExperimentPanel({
                   ) : (
                     <SendHorizonal className="size-4" />
                   )}
-                  发送
+                  Send
                 </Button>
               </div>
             </div>
@@ -700,7 +708,7 @@ function TextExperimentPanel({
                 Text History
               </div>
               <p className="mt-1 text-sm leading-6 text-stone-600">
-                聊天记录会保存在本机浏览器，可随时清空。
+                Chat history is stored in local browser storage and can be cleared anytime.
               </p>
             </div>
             <Button
@@ -710,7 +718,7 @@ function TextExperimentPanel({
               onClick={() => void onClearMessages()}
             >
               <Trash2 className="size-4" />
-              清空聊天
+              Clear Chat
             </Button>
           </div>
 
@@ -722,7 +730,7 @@ function TextExperimentPanel({
                 Model Availability
               </div>
               <p className="mt-1 text-sm leading-6 text-stone-600">
-                逐个发送小提示词，显示每个文生文模型是否可用。
+                Test each text chat model with a small prompt to check availability.
               </p>
             </div>
             <Button
@@ -734,7 +742,7 @@ function TextExperimentPanel({
               {isTestingModels ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : null}
-              批量测试模型
+              Batch Test Models
             </Button>
           </div>
           <div className="mt-3 grid max-h-[240px] gap-2 overflow-y-auto pr-1 lg:max-h-none lg:flex-1">
@@ -759,7 +767,7 @@ function TextExperimentPanel({
               ))
             ) : (
               <div className="rounded-2xl border border-dashed border-stone-200 bg-white/70 px-3 py-3 text-sm leading-6 text-stone-400">
-                点击批量测试后会显示 pending / testing / success / error 状态。
+                Click batch test to see pending / testing / success / error status.
               </div>
             )}
           </div>
@@ -820,7 +828,7 @@ function deriveTurnStatus(
     };
   }
   if (failedCount > 0) {
-    return { status: "error", error: `其中 ${failedCount} 张未成功生成` };
+    return { status: "error", error: ` ${failedCount} images failed to generate` };
   }
   if (successCount > 0) {
     return { status: "success", error: undefined };
@@ -920,7 +928,7 @@ async function recoverConversationHistory(items: ImageConversation[]) {
         return {
           ...image,
           status: "error" as const,
-          error: "页面刷新或任务中断，未找到可恢复的任务 ID",
+          error: "Page was refreshed or job was interrupted; no recoverable Job ID found",
         };
       });
       const derived = deriveTurnStatus({ ...turn, images });
@@ -995,7 +1003,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     string | null
   >(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [availableQuota, setAvailableQuota] = useState("加载中...");
+  const [availableQuota, setAvailableQuota] = useState("Loading...");
   const [lightboxImages, setLightboxImages] = useState<ImageLightboxItem[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -1042,6 +1050,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           isTextModel(model.id, model),
       )
       .map((model) => model.id);
+    if (modelMetadata.length > 0 && discovered.length === 0) {
+      return [];
+    }
     return uniqueModelIds([
       ...discovered,
       ...fallbackTextModelsForProvider(textProvider, modelMetadata.length > 0),
@@ -1050,6 +1061,38 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       providerMatches(model, textProvider, modelMetadataById.get(model)),
     );
   }, [modelMetadata, modelMetadataById, textModel, textProvider]);
+  const textProviderAvailability = useMemo(() => {
+    if (modelMetadata.length === 0) {
+      return undefined;
+    }
+    return SUPPORTED_TEST_PROVIDERS.reduce(
+      (acc, provider) => {
+        const count = modelMetadata.filter(
+          (m) => providerMatches(m.id, provider, m) && isTextModel(m.id, m),
+        ).length;
+        const disabled = count === 0;
+        acc[provider] = {
+          disabled,
+          reason: disabled ? "No accounts available" : undefined,
+        };
+        return acc;
+      },
+      {} as Partial<Record<TestProviderId, { disabled: boolean; reason?: string }>>,
+    );
+  }, [modelMetadata]);
+
+  useEffect(() => {
+    if (!textProviderAvailability) return;
+    const currentState = textProviderAvailability[textProvider];
+    if (currentState?.disabled) {
+      const firstAvailable = SUPPORTED_TEST_PROVIDERS.find(
+        (p) => !textProviderAvailability[p]?.disabled,
+      );
+      if (firstAvailable) {
+        setTextProvider(firstAvailable);
+      }
+    }
+  }, [textProvider, textProviderAvailability]);
   const imageProviderOptions = useMemo(
     () =>
       SUPPORTED_TEST_PROVIDERS.map((provider) => {
@@ -1067,7 +1110,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           value: provider,
           label: definition.label,
           disabled,
-          reason: disabled ? "暂不支持图像" : undefined,
+          reason: disabled ? "Image generation not supported" : undefined,
         };
       }),
     [modelMetadata],
@@ -1088,23 +1131,23 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   );
   const deleteConfirmTitle =
     deleteConfirm?.type === "all"
-      ? "清空历史记录"
+      ? "Clear History"
       : deleteConfirm?.type === "prompt"
-        ? "删除提示词记录"
+        ? "Delete Prompt Record"
         : deleteConfirm?.type === "results"
-          ? "删除生成结果"
+          ? "Delete Generated Results"
           : deleteConfirm?.type === "one"
-            ? "删除对话"
+            ? "Delete Session"
             : "";
   const deleteConfirmDescription =
     deleteConfirm?.type === "all"
-      ? "确认删除全部图片历史记录吗？删除后无法恢复。"
+      ? "Are you sure you want to delete all image history? This cannot be undone."
       : deleteConfirm?.type === "prompt"
-        ? "确认删除这条提示词记录吗？对应生成结果会保留。"
+        ? "Are you sure you want to delete this prompt record? The generated results will be kept."
         : deleteConfirm?.type === "results"
-          ? "确认删除这条生成结果吗？对应提示词记录会保留。"
+          ? "Are you sure you want to delete these results? The prompt record will be kept."
           : deleteConfirm?.type === "one"
-            ? "确认删除这条图片对话吗？删除后无法恢复。"
+            ? "Are you sure you want to delete this session? This cannot be undone."
             : "";
 
   useEffect(() => {
@@ -1185,7 +1228,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         }
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "读取文本聊天记录失败";
+          error instanceof Error ? error.message : "Failed to read text chat history";
         toast.error(message);
       } finally {
         if (!cancelled) {
@@ -1276,7 +1319,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         setSelectedConversationId(nextSelectedConversationId);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "读取会话记录失败";
+          error instanceof Error ? error.message : "Failed to load session records";
         toast.error(message);
       } finally {
         if (!cancelled) {
@@ -1300,7 +1343,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       const data = await fetchAccounts();
       setAvailableQuota(formatAvailableQuota(data.items));
     } catch {
-      setAvailableQuota((prev) => (prev === "加载中..." ? "--" : prev));
+      setAvailableQuota((prev) => (prev === "Loading..." ? "--" : prev));
     }
   }, [isAdmin]);
 
@@ -1446,7 +1489,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     try {
       await deleteImageConversation(id);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "删除会话失败";
+      const message = error instanceof Error ? error.message : "Failed to delete session";
       toast.error(message);
       const items = await listImageConversations();
       conversationsRef.current = items;
@@ -1485,7 +1528,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
               ? turn.images.map((image) => ({
                   id: image.id,
                   status: "error" as const,
-                  error: "生成结果已删除",
+                  error: "Generated results deleted",
                 }))
               : turn.images,
         };
@@ -1515,10 +1558,10 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       setConversations([]);
       setSelectedConversationId(null);
       resetComposer();
-      toast.success("已清空历史记录");
+      toast.success("History cleared");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "清空历史记录失败";
+        error instanceof Error ? error.message : "Failed to clear history";
       toast.error(message);
     }
   };
@@ -1534,7 +1577,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     try {
       await renameImageConversation(id, title);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "重命名失败";
+      const message = error instanceof Error ? error.message : "Failed to rename";
       toast.error(message);
     }
   };
@@ -1598,7 +1641,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         fileInputRef.current.value = "";
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "读取参考图失败";
+      const message = error instanceof Error ? error.message : "Failed to read reference image";
       toast.error(message);
     }
   }, []);
@@ -1653,10 +1696,10 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         setReferenceImageFiles((prev) => [...prev, nextReference.file]);
         setImagePrompt("");
         textareaRef.current?.focus();
-        toast.success("已加入当前参考图，继续输入描述即可编辑");
+        toast.success("Added as reference image. Enter description to continue editing.");
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "读取结果图失败";
+          error instanceof Error ? error.message : "Failed to load generated image";
         toast.error(message);
       }
     },
@@ -1691,7 +1734,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         fileInputRef.current.value = "";
       }
       textareaRef.current?.focus();
-      toast.success("已复用这条提示词配置");
+      toast.success("Prompt config reused");
     },
     [modelMetadataById],
   );
@@ -1804,7 +1847,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           ),
         );
         if (activeTurn.mode === "edit" && referenceFiles.length === 0) {
-          throw new Error("未找到可用于继续编辑的参考图");
+          throw new Error("No reference image found for editing");
         }
 
         const pendingImages = activeTurn.images.filter(
@@ -1884,7 +1927,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
         await loadQuota();
       } catch (error) {
-        const message = error instanceof Error ? error.message : "生成图片失败";
+        const message = error instanceof Error ? error.message : "Failed to generate image";
         await updateConversation(conversationId, (current) => {
           const conversation = current ?? snapshot;
           return {
@@ -1964,7 +2007,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       setSelectedConversationId(conversationId);
       await persistConversation(nextConversation);
       void runConversationQueue(conversationId);
-      toast.success("已加入重新生成队列");
+      toast.success("Added to regeneration queue");
     },
     [runConversationQueue],
   );
@@ -2039,7 +2082,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const handleSubmit = async () => {
     const prompt = imagePrompt.trim();
     if (!prompt) {
-      toast.error("请输入提示词");
+      toast.error("Please enter a prompt");
       return;
     }
 
@@ -2050,7 +2093,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       imageModelOptions.length === 0 ||
       !imageModelOptions.includes(imageModel)
     ) {
-      toast.error(imageModeUnavailableMessage || "当前服务暂无可用图像模型");
+      toast.error(imageModeUnavailableMessage || "No image models available for current provider");
       return;
     }
 
@@ -2097,18 +2140,18 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
     const targetStats = getImageConversationStats(baseConversation);
     if (targetStats.running > 0 || targetStats.queued > 1) {
-      toast.success("已加入当前对话队列");
+      toast.success("Added to current session queue");
     } else if (!targetConversation) {
-      toast.success("已创建新对话并开始处理");
+      toast.success("Created new session and started processing");
     } else {
-      toast.success("已发送到当前对话");
+      toast.success("Sent to current session");
     }
   };
 
   const handleTextSubmit = async () => {
     const prompt = textPrompt.trim();
     if (!prompt) {
-      toast.error("请输入文本试验内容");
+      toast.error("Please enter a message to send");
       return;
     }
 
@@ -2135,7 +2178,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       });
       const content = data.choices[0]?.message?.content?.trim();
       if (!content) {
-        throw new Error("模型未返回文本内容");
+        throw new Error("Model returned no text content");
       }
       setTextMessages((current) => [
         ...current,
@@ -2147,9 +2190,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           createdAt: new Date().toISOString(),
         },
       ]);
-      toast.success("文本试验完成");
+      toast.success("Chat completed");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "文本试验失败";
+      const message = error instanceof Error ? error.message : "Chat request failed";
       setTextMessages((current) => [
         ...current,
         {
@@ -2170,10 +2213,10 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     try {
       await clearTextMessages();
       setTextMessages([]);
-      toast.success("已清空文本聊天记录");
+      toast.success("Text chat history cleared");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "清空文本聊天记录失败";
+        error instanceof Error ? error.message : "Clear text chat historyFailed";
       toast.error(message);
     }
   };
@@ -2192,7 +2235,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const handleBatchTextModelTest = async () => {
     const modelsToTest = uniqueModelIds(textModelOptions);
     if (modelsToTest.length === 0) {
-      toast.error("暂无可测试的文本模型");
+      toast.error("No text models available to test");
       return;
     }
 
@@ -2201,14 +2244,14 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       modelsToTest.map((modelId) => ({
         model: modelId,
         status: "pending",
-        message: "等待测试",
+        message: "Pending",
       })),
     );
 
     for (const modelId of modelsToTest) {
       updateTextModelTestResult(modelId, {
         status: "testing",
-        message: "测试中",
+        message: "Testing",
       });
       try {
         const data = await createChatCompletion({
@@ -2218,20 +2261,20 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         });
         const content = data.choices[0]?.message?.content?.trim();
         if (!content) {
-          throw new Error("模型未返回文本内容");
+          throw new Error("Model returned no text content");
         }
         updateTextModelTestResult(modelId, {
           status: "success",
-          message: "可用",
+          message: "Available",
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "请求失败";
+        const message = error instanceof Error ? error.message : "Request failed";
         updateTextModelTestResult(modelId, { status: "error", message });
       }
     }
 
     setIsTestingTextModels(false);
-    toast.success("模型批量测试完成");
+    toast.success("Model batch test completed");
   };
 
   const imageProviderLabel = getAccountProviderDefinition(imageProvider).label;
@@ -2241,11 +2284,11 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     : null;
   const selectedConversationStatus = selectedConversationStats
     ? selectedConversationStats.running > 0
-      ? `${selectedConversationStats.running} 个处理中`
+      ? `${selectedConversationStats.running} Processing`
       : selectedConversationStats.queued > 0
-        ? `${selectedConversationStats.queued} 个排队中`
-        : `${selectedConversationTurnCount} 轮记录`
-    : "新草稿";
+        ? `${selectedConversationStats.queued} Queued`
+        : `${selectedConversationTurnCount} turns recorded`
+    : "New Draft";
 
   return (
     <>
@@ -2254,31 +2297,31 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <div className="text-xs font-semibold tracking-[0.18em] text-stone-500 uppercase">
-                试验页面
+                Playground
               </div>
               <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
                 <h1 className="text-xl font-semibold tracking-tight text-stone-950 sm:text-2xl">
-                  图像试验工作台
+                  Image & Text Playground
                 </h1>
                 <p className="text-sm text-stone-500">
-                  文生文走聊天接口，文生图保留队列和历史。
+                  Chat interface for text models; queuing and history for image generation.
                 </p>
               </div>
               {experimentMode === "image" ? (
                 <div className="mt-3 flex gap-2 overflow-x-auto pb-1 text-xs text-stone-600 sm:flex-wrap sm:overflow-visible sm:pb-0">
                   <span className="shrink-0 rounded-full border border-stone-200/80 bg-white/70 px-3 py-1.5">
-                    服务 {imageProviderLabel}
+                    Provider {imageProviderLabel}
                   </span>
                   <span className="max-w-[240px] shrink-0 truncate rounded-full border border-stone-200/80 bg-white/70 px-3 py-1.5 sm:max-w-[320px]">
-                    模型 {imageModel || "待选择"}
+                    Model {imageModel || "Pending selection"}
                   </span>
                   <span className="shrink-0 rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 text-amber-800">
-                    额度 {availableQuota}
+                    Quota {availableQuota}
                   </span>
                   <span className="shrink-0 rounded-full border border-lime-200/80 bg-lime-50/80 px-3 py-1.5 text-lime-800">
                     {activeTaskCount > 0
-                      ? `${activeTaskCount} 个活跃任务`
-                      : "任务空闲"}
+                      ? `${activeTaskCount} active jobs`
+                      : "Idle"}
                   </span>
                   <span className="shrink-0 rounded-full border border-stone-200/80 bg-white/70 px-3 py-1.5">
                     {selectedConversationStatus}
@@ -2300,6 +2343,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             provider={textProvider}
             model={textModel}
             models={textModelOptions}
+            providerAvailability={textProviderAvailability}
             isLoading={isSubmittingText}
             isTestingModels={isTestingTextModels}
             modelTestResults={textModelTestResults}
@@ -2331,7 +2375,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
                 <DialogHeader className="px-6 pt-7 pb-4 sm:px-8">
                   <DialogTitle className="flex items-center gap-2 text-xl font-bold tracking-tight">
                     <History className="size-5" />
-                    历史记录
+                    History
                   </DialogTitle>
                 </DialogHeader>
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-8 sm:px-8">
@@ -2365,14 +2409,14 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
                   onClick={() => setIsHistoryOpen(true)}
                 >
                   <History className="mr-2 size-4" />
-                  历史记录 ({conversations.length})
+                  History ({conversations.length})
                 </Button>
                 <Button
                   className="h-10 rounded-2xl bg-stone-950 text-white shadow-sm"
                   onClick={handleCreateDraft}
                 >
                   <Plus className="size-4" />
-                  新建
+                  New
                 </Button>
                 <Button
                   variant="outline"
@@ -2456,13 +2500,13 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-                取消
+                Cancel
               </Button>
               <Button
                 className="bg-rose-600 text-white hover:bg-rose-700"
                 onClick={() => void handleConfirmDelete()}
               >
-                确认删除
+                Are you sure you want to delete
               </Button>
             </DialogFooter>
           </DialogContent>

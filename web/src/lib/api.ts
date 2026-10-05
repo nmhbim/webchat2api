@@ -649,11 +649,11 @@ export async function downloadSingleImage(path: string) {
   URL.revokeObjectURL(url);
 }
 
-export async function fetchImageTags() {
+export async function fetchImageTag() {
   return httpRequest<{ tags: string[] }>("/api/images/tags");
 }
 
-export async function setImageTags(path: string, tags: string[]) {
+export async function setImageTag(path: string, tags: string[]) {
   return httpRequest<{ ok: boolean; tags: string[] }>("/api/images/tags", {
     method: "POST",
     body: { path, tags },

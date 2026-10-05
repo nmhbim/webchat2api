@@ -21,7 +21,7 @@ export default function LoginPage() {
   const handleLogin = async () => {
     const normalizedAuthKey = authKey.trim();
     if (!normalizedAuthKey) {
-      toast.error("请输入 密钥");
+      toast.error("Please enter your secret key");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
       });
       router.replace(getDefaultRouteForRole(data.role));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "登录失败";
+      const message = error instanceof Error ? error.message : "Login failed";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -63,14 +63,14 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">Management Console</p>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground">欢迎回来</h1>
-              <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">输入密钥后继续进入温暖的玻璃控制台，管理账号、图片生成与系统配置。</p>
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground">Welcome Back</h1>
+              <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">Enter your secret key to access the console, manage accounts, and configure system settings.</p>
             </div>
           </div>
 
           <div className="space-y-3">
             <label htmlFor="auth-key" className="block text-sm font-medium text-foreground">
-              密钥
+              Secret Key
             </label>
             <Input
               id="auth-key"
@@ -82,7 +82,7 @@ export default function LoginPage() {
                   void handleLogin();
                 }
               }}
-              placeholder="请输入密钥"
+              placeholder="Enter your secret key"
               className="h-13 rounded-2xl border-white/80 bg-card/82 px-4 shadow-inner shadow-stone-200/30 focus-visible:ring-ring/45"
             />
           </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
             disabled={isSubmitting}
           >
             {isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : null}
-            登录
+            Sign In
           </Button>
         </CardContent>
       </Card>

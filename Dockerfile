@@ -68,7 +68,7 @@ COPY utils ./utils
 COPY scripts ./scripts
 COPY --from=web-build /app/web/out ./web_dist
 
-RUN chmod +x /app/scripts/entrypoint.sh
+RUN sed -i 's/\r$//' /app/scripts/*.sh && chmod +x /app/scripts/*.sh
 
 EXPOSE 83
 

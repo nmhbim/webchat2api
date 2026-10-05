@@ -288,6 +288,44 @@ class ProviderModelListTests(unittest.TestCase):
         self.assertEqual(models["gemini-pro"]["provider"], "gemini")
         self.assertFalse(hasattr(openai_v1_models, "_dynamic_gemini_model_metadata"))
 
+    def test_list_models_filters_by_active_accounts_when_pool_has_accounts(self) -> None:
+        fake_accounts = {
+            "gpt": [{"access_token": "token1", "provider": "gpt", "status": "正常"}],
+            "gemini": [{"access_token": "token2", "provider": "gemini", "status": "正常"}],
+            "grok": [],  # No grok accounts
+        }
+
+        class MockAccountService:
+            def list_accounts(self, provider=None):
+                if provider:
+                    return fake_accounts.get(provider, [])
+                return [acc for accs in fake_accounts.values() for acc in accs]
+            def get_text_access_token(self, provider="gpt"):
+                return "token1" if provider == "gpt" else ""
+
+        with mock.patch("services.account_service.account_service", MockAccountService()), \
+             mock.patch.object(openai_v1_models, "_fetch_chatgpt_models", side_effect=RuntimeError("unavailable")):
+            result = openai_v1_models.list_models()
+
+        models = {item["id"]: item for item in result["data"]}
+        # Grok has 0 accounts, should NOT be in models
+        self.assertNotIn("grok-4.3", models)
+        self.assertNotIn("grok-imagine-image", models)
+        # GPT and Gemini have accounts, should be in models
+        self.assertIn("gpt-4o", models)
+        self.assertIn("gemini-2.5-pro", models)
+
+        # Now simulate adding a Grok account
+        fake_accounts["grok"] = [{"access_token": "sso=123", "provider": "grok", "status": "正常"}]
+        with mock.patch("services.account_service.account_service", MockAccountService()), \
+             mock.patch.object(openai_v1_models, "_fetch_chatgpt_models", side_effect=RuntimeError("unavailable")):
+            result_with_grok = openai_v1_models.list_models()
+
+        models_with_grok = {item["id"]: item for item in result_with_grok["data"]}
+        self.assertIn("grok-4.3", models_with_grok)
+        self.assertIn("grok-imagine-image", models_with_grok)
+
 
 if __name__ == "__main__":
     unittest.main()
+

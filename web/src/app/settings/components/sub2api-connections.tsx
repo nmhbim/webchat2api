@@ -119,7 +119,7 @@ export function Sub2APIConnections() {
       const data = await fetchSub2APIServers();
       setServers(data.servers);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "加载 Sub2API 连接失败");
+      toast.error(error instanceof Error ? error.message : "Failed to load Sub2API connections");
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +155,7 @@ export function Sub2APIConnections() {
             window.clearInterval(pollTimerRef.current);
             pollTimerRef.current = null;
           }
-          toast.error(error instanceof Error ? error.message : "查询导入进度失败");
+          toast.error(error instanceof Error ? error.message : "Failed to query import progress");
         });
     }, 1500);
 
@@ -197,7 +197,7 @@ export function Sub2APIConnections() {
 
   const handleFetchGroups = async () => {
     if (!editingServer) {
-      toast.error("请先保存连接后再拉取分组");
+      toast.error("Please save connection first before fetching groups");
       return;
     }
     setIsLoadingGroups(true);
@@ -205,12 +205,12 @@ export function Sub2APIConnections() {
       const data = await fetchSub2APIServerGroups(editingServer.id);
       setRemoteGroups(data.groups);
       if (data.groups.length === 0) {
-        toast.message("远端没有配置分组");
+        toast.message("No groups configured on remote server");
       } else {
-        toast.success(`读取到 ${data.groups.length} 个分组`);
+        toast.success(`Retrieved ${data.groups.length} groups`);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "拉取分组失败");
+      toast.error(error instanceof Error ? error.message : "Failed to fetch groups");
     } finally {
       setIsLoadingGroups(false);
     }
@@ -218,20 +218,20 @@ export function Sub2APIConnections() {
 
   const handleSave = async () => {
     if (!formBaseUrl.trim()) {
-      toast.error("请输入 Sub2API 地址");
+      toast.error("Please enter Sub2API address");
       return;
     }
     if (authMode === "password") {
       if (!formEmail.trim()) {
-        toast.error("请输入管理员邮箱");
+        toast.error("Please enter Admin email");
         return;
       }
       if (!editingServer && !formPassword.trim()) {
-        toast.error("请输入管理员密码");
+        toast.error("Please enter Admin password");
         return;
       }
     } else if (!editingServer && !formApiKey.trim()) {
-      toast.error("请输入 Admin API Key");
+      toast.error("Please enter Admin API Key");
       return;
     }
 
@@ -258,7 +258,7 @@ export function Sub2APIConnections() {
         }
         const data = await updateSub2APIServer(editingServer.id, updates);
         setServers(data.servers);
-        toast.success("连接已更新");
+        toast.success("Connection updated");
       } else {
         const data = await createSub2APIServer({
           name: formName.trim(),
@@ -269,11 +269,11 @@ export function Sub2APIConnections() {
           group_id: formGroupId.trim(),
         });
         setServers(data.servers);
-        toast.success("连接已添加");
+        toast.success("Connection added");
       }
       setDialogOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "保存失败");
+      toast.error(error instanceof Error ? error.message : "Save failed");
     } finally {
       setIsSaving(false);
     }
@@ -284,9 +284,9 @@ export function Sub2APIConnections() {
     try {
       const data = await deleteSub2APIServer(server.id);
       setServers(data.servers);
-      toast.success("连接已删除");
+      toast.success("Connection deleted");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "删除失败");
+      toast.error(error instanceof Error ? error.message : "Delete failed");
     } finally {
       setDeletingId(null);
     }
@@ -303,9 +303,9 @@ export function Sub2APIConnections() {
       setAccountQuery("");
       setAccountPage(1);
       setBrowserOpen(true);
-      toast.success(`读取成功，共 ${accounts.length} 个 OpenAI 账号`);
+      toast.success(`Loaded successfully, total ${accounts.length} OpenAI accounts`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "读取 Sub2API 账号失败");
+      toast.error(error instanceof Error ? error.message : "Failed to read Sub2API accounts");
     } finally {
       setLoadingAccountsId(null);
     }
@@ -359,7 +359,7 @@ export function Sub2APIConnections() {
       return;
     }
     if (selectedIds.length === 0) {
-      toast.error("请先选择要导入的账号");
+      toast.error("Please select accounts to import first");
       return;
     }
 
@@ -372,9 +372,9 @@ export function Sub2APIConnections() {
         ),
       );
       setBrowserOpen(false);
-      toast.success("导入任务已启动");
+      toast.success("Import task started");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "启动导入失败");
+      toast.error(error instanceof Error ? error.message : "Failed to start import task");
     } finally {
       setIsStartingImport(false);
     }
@@ -390,20 +390,20 @@ export function Sub2APIConnections() {
                 <ServerCog className="size-5 text-stone-600" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Sub2API 连接管理</h2>
+                <h2 className="text-lg font-semibold tracking-tight">Sub2API Connections</h2>
                 <p className="text-sm text-stone-500">
-                  配置 Sub2API 服务器后，可查询其中的 OpenAI OAuth 账号并批量导入本地号池。
+                  Connect to Sub2API servers to discover and batch-import OpenAI OAuth accounts.
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {servers.length > 0 ? <Badge className="rounded-md px-2.5 py-1">{servers.length} 个连接</Badge> : null}
+              {servers.length > 0 ? <Badge className="rounded-md px-2.5 py-1">{servers.length} connections</Badge> : null}
               <Button
                 className="h-9 rounded-xl bg-stone-950 px-4 text-white hover:bg-stone-800"
                 onClick={openAddDialog}
               >
                 <Plus className="size-4" />
-                添加连接
+                Add Connection
               </Button>
             </div>
           </div>
@@ -416,8 +416,8 @@ export function Sub2APIConnections() {
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/70 bg-muted/55 px-6 py-10 text-center">
               <ServerCog className="size-8 text-stone-300" />
               <div className="space-y-1">
-                <p className="text-sm font-medium text-stone-600">暂无 Sub2API 连接</p>
-                <p className="text-sm text-stone-400">点击「添加连接」保存你的 Sub2API 信息。</p>
+                <p className="text-sm font-medium text-stone-600">No Sub2API Connections</p>
+                <p className="text-sm text-stone-400">Click 'Add Connection' to add a Sub2API server.</p>
               </div>
             </div>
           ) : (
@@ -436,7 +436,7 @@ export function Sub2APIConnections() {
                         <div className="truncate text-xs text-stone-400">
                           {server.base_url}
                           {server.email ? ` · ${server.email}` : server.has_api_key ? " · API Key" : ""}
-                          {server.group_id ? ` · 分组 ${server.group_id}` : " · 全部分组"}
+                          {server.group_id ? ` · Group ${server.group_id}` : " · All Groups"}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
@@ -445,7 +445,7 @@ export function Sub2APIConnections() {
                           className="rounded-lg p-2 text-stone-400 transition hover:bg-stone-100 hover:text-stone-700"
                           onClick={() => openEditDialog(server)}
                           disabled={isBusy}
-                          title="编辑"
+                          title="Edit"
                         >
                           <Pencil className="size-4" />
                         </button>
@@ -454,7 +454,7 @@ export function Sub2APIConnections() {
                           className="rounded-lg p-2 text-stone-400 transition hover:bg-rose-50 hover:text-rose-500"
                           onClick={() => void handleDelete(server)}
                           disabled={isBusy}
-                          title="删除"
+                          title="Delete"
                         >
                           {deletingId === server.id ? (
                             <LoaderCircle className="size-4 animate-spin" />
@@ -477,13 +477,13 @@ export function Sub2APIConnections() {
                         ) : (
                           <Import className="size-3.5" />
                         )}
-                        同步
+                        Sync
                       </Button>
                     </div>
 
                     {importJob ? (
                       <div className="space-y-2 rounded-2xl border border-white/70 bg-muted/55 px-3 py-3">
-                        <div className="text-xs font-medium tracking-[0.16em] text-stone-400 uppercase">导入任务</div>
+                        <div className="text-xs font-medium tracking-[0.16em] text-stone-400 uppercase">IMPORT JOBS</div>
                         {(() => {
                           const progress =
                             importJob.total > 0
@@ -494,10 +494,10 @@ export function Sub2APIConnections() {
                               <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
                                   <div className="text-sm font-medium text-stone-700">
-                                    状态 {importJob.status}，已处理 {importJob.completed}/{importJob.total}
+                                    Status {importJob.status}，processed {importJob.completed}/{importJob.total}
                                   </div>
                                   <div className="truncate text-xs text-stone-400">
-                                    任务 {importJob.job_id.slice(0, 8)} · {importJob.created_at}
+                                    Job {importJob.job_id.slice(0, 8)} · {importJob.created_at}
                                   </div>
                                 </div>
                                 <Badge
@@ -520,10 +520,10 @@ export function Sub2APIConnections() {
                                 />
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2 text-xs text-stone-500">
-                                <span>新增 {importJob.added}</span>
-                                <span>跳过 {importJob.skipped}</span>
-                                <span>刷新 {importJob.refreshed}</span>
-                                <span>失败 {importJob.failed}</span>
+                                <span>Added {importJob.added}</span>
+                                <span>Skipped {importJob.skipped}</span>
+                                <span>Refresh {importJob.refreshed}</span>
+                                <span>Failed {importJob.failed}</span>
                               </div>
                             </div>
                           );
@@ -537,12 +537,12 @@ export function Sub2APIConnections() {
           )}
 
           <div className="rounded-2xl border border-white/70 bg-muted/55 px-4 py-3 text-sm leading-6 text-muted-foreground">
-            <p className="font-medium text-stone-600">使用说明</p>
+            <p className="font-medium text-stone-600">Instructions</p>
             <ul className="mt-1 list-inside list-disc space-y-0.5">
-              <li>输入 Sub2API 地址和管理员账户（或 Admin API Key），保存为一个连接。</li>
-              <li>点击某个连接的「同步」会拉取其中 platform=openai 且 type=oauth 的账号列表。</li>
-              <li>勾选需要的账号后后端会并发拉取 access_token，自动导入本地号池并刷新状态。</li>
-              <li>仅会读取 sub2api 凭据中的 access_token；refresh_token 等字段不会写入本地。</li>
+              <li>Enter Sub2API URL and admin credentials (or Admin API Key), then save as a connection.</li>
+              <li>Click 'Sync' on a connection to fetch accounts where platform=openai and type=oauth.</li>
+              <li>Select accounts to concurrently fetch access tokens and import them into the pool.</li>
+              <li>Only access_token is imported; refresh_token and other sensitive credentials are not saved locally.</li>
             </ul>
           </div>
         </CardContent>
@@ -551,25 +551,25 @@ export function Sub2APIConnections() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent showCloseButton={false} className="rounded-2xl p-6">
           <DialogHeader className="gap-2">
-            <DialogTitle>{editingServer ? "编辑连接" : "添加连接"}</DialogTitle>
+            <DialogTitle>{editingServer ? "Edit Connection" : "Add Connection"}</DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              {editingServer ? "修改 Sub2API 连接信息" : "添加一个新的 Sub2API 连接"}
+              {editingServer ? "Edit Sub2API Connection" : "Add a New Sub2API Connection"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-stone-700">名称（可选）</label>
+              <label className="text-sm font-medium text-stone-700">Name (Optional)</label>
               <Input
                 value={formName}
                 onChange={(event) => setFormName(event.target.value)}
-                placeholder="例如：自建 sub2api"
+                placeholder="e.g. My Sub2API Instance"
                 className="h-11 rounded-xl border-stone-200 bg-white"
               />
             </div>
             <div className="space-y-2">
               <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700">
                 <Link2 className="size-3.5" />
-                Sub2API 地址
+                Sub2API Server URL
               </label>
               <Input
                 value={formBaseUrl}
@@ -579,13 +579,13 @@ export function Sub2APIConnections() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-stone-700">认证方式</label>
+              <label className="text-sm font-medium text-stone-700">Authentication Method</label>
               <Select value={authMode} onValueChange={(value) => setAuthMode(value as AuthMode)}>
                 <SelectTrigger className="h-11 rounded-xl border-stone-200 bg-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="password">管理员邮箱 + 密码</SelectItem>
+                  <SelectItem value="password">Admin Email + Password</SelectItem>
                   <SelectItem value="api_key">Admin API Key</SelectItem>
                 </SelectContent>
               </Select>
@@ -595,7 +595,7 @@ export function Sub2APIConnections() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700">
                     <Mail className="size-3.5" />
-                    管理员邮箱
+                    Admin Email
                   </label>
                   <Input
                     value={formEmail}
@@ -607,14 +607,14 @@ export function Sub2APIConnections() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700">
                     <Unplug className="size-3.5" />
-                    管理员密码
+                    Admin Password
                   </label>
                   <div className="relative">
                     <Input
                       type={showSecret ? "text" : "password"}
                       value={formPassword}
                       onChange={(event) => setFormPassword(event.target.value)}
-                      placeholder={editingServer ? "留空则不修改密码" : "管理员密码"}
+                      placeholder={editingServer ? "Leave blank to keep password unchanged" : "Admin Password"}
                       className="h-11 rounded-xl border-stone-200 bg-white pr-10"
                     />
                     <button
@@ -638,7 +638,7 @@ export function Sub2APIConnections() {
                     type={showSecret ? "text" : "password"}
                     value={formApiKey}
                     onChange={(event) => setFormApiKey(event.target.value)}
-                    placeholder={editingServer ? "留空则不修改密钥" : "Sub2API Admin API Key"}
+                    placeholder={editingServer ? "Leave blank to keep API key unchanged" : "Sub2API Admin API Key"}
                     className="h-11 rounded-xl border-stone-200 bg-white pr-10"
                   />
                   <button
@@ -654,16 +654,16 @@ export function Sub2APIConnections() {
             <div className="space-y-2">
               <label className="flex items-center gap-1.5 text-sm font-medium text-stone-700">
                 <Layers className="size-3.5" />
-                分组（可选）
+                Group (Optional)
               </label>
               {remoteGroups && remoteGroups.length > 0 ? (
                 <Select value={formGroupId || "__all__"} onValueChange={(value) => setFormGroupId(value === "__all__" ? "" : value)}>
                   <SelectTrigger className="h-11 rounded-xl border-stone-200 bg-white">
-                    <SelectValue placeholder="选择分组" />
+                    <SelectValue placeholder="Select Group" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__all__">全部分组（不限制）</SelectItem>
-                    <SelectItem value="ungrouped">未分组</SelectItem>
+                    <SelectItem value="__all__">All Groups (No restrictions)</SelectItem>
+                    <SelectItem value="ungrouped">Ungrouped</SelectItem>
                     {remoteGroups.map((group) => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.name || `Group ${group.id}`}
@@ -679,13 +679,13 @@ export function Sub2APIConnections() {
                 <Input
                   value={formGroupId}
                   onChange={(event) => setFormGroupId(event.target.value)}
-                  placeholder="留空则同步所有分组；或填写分组 ID / ungrouped"
+                  placeholder="Leave blank to sync all groups; or enter group ID / ungrouped"
                   className="h-11 rounded-xl border-stone-200 bg-white"
                 />
               )}
               {editingServer ? (
                 <div className="flex items-center justify-between gap-2 text-xs text-stone-500">
-                  <span>同步时会用分组 ID 过滤，留空 = 同步所有 OpenAI OAuth 账号。</span>
+                  <span>Filters by group ID during sync; blank = sync all OpenAI OAuth accounts.</span>
                   <Button
                     variant="outline"
                     className="h-8 rounded-lg border-stone-200 bg-white px-2 text-xs text-stone-600"
@@ -697,12 +697,12 @@ export function Sub2APIConnections() {
                     ) : (
                       <RefreshCcw className="size-3.5" />
                     )}
-                    {remoteGroups ? "重新拉取" : "拉取分组"}
+                    {remoteGroups ? "Re-fetch Groups" : "Fetch Groups"}
                   </Button>
                 </div>
               ) : (
                 <div className="text-xs text-stone-500">
-                  添加完连接后可在编辑对话框里点「拉取分组」选择具体分组。
+                  After saving connection, open edit dialog and click 'Fetch Groups' to select.
                 </div>
               )}
             </div>
@@ -714,7 +714,7 @@ export function Sub2APIConnections() {
               onClick={() => setDialogOpen(false)}
               disabled={isSaving}
             >
-              取消
+              Cancel
             </Button>
             <Button
               className="h-10 rounded-xl bg-stone-950 px-5 text-white hover:bg-stone-800"
@@ -722,7 +722,7 @@ export function Sub2APIConnections() {
               disabled={isSaving}
             >
               {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}
-              {editingServer ? "保存修改" : "添加"}
+              {editingServer ? "Save Changes" : "Add"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -731,9 +731,9 @@ export function Sub2APIConnections() {
       <Dialog open={browserOpen} onOpenChange={setBrowserOpen}>
         <DialogContent showCloseButton={false} className="max-h-[90vh] max-w-5xl rounded-2xl p-6">
           <DialogHeader className="gap-2">
-            <DialogTitle>选择要导入的账号</DialogTitle>
+            <DialogTitle>Select Accounts to Import</DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              {browserServer ? `来自 ${browserServer.name || browserServer.base_url}` : "Sub2API 上的 OpenAI OAuth 账号"}
+              {browserServer ? `From ${browserServer.name || browserServer.base_url}` : "OpenAI OAuth Accounts on Sub2API"}
             </DialogDescription>
           </DialogHeader>
 
@@ -746,7 +746,7 @@ export function Sub2APIConnections() {
                   setAccountQuery(event.target.value);
                   setAccountPage(1);
                 }}
-                placeholder="搜索邮箱、套餐或名称"
+                placeholder="Search email, plan, or name"
                 className="h-10 rounded-xl border-stone-200 bg-white pl-10"
               />
             </div>
@@ -764,7 +764,7 @@ export function Sub2APIConnections() {
                 <SelectContent>
                   {PAGE_SIZE_OPTIONS.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {item} / 页
+                      {item} / page
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -774,7 +774,7 @@ export function Sub2APIConnections() {
                 className="h-10 rounded-xl border-stone-200 bg-white px-4 text-stone-700"
                 onClick={() => handleToggleSelectAllFiltered(!allFilteredSelected)}
               >
-                {allFilteredSelected ? "取消全选" : "全选筛选结果"}
+                {allFilteredSelected ? "Deselect All" : "Select All Filtered"}
               </Button>
             </div>
           </div>
@@ -786,13 +786,13 @@ export function Sub2APIConnections() {
                   checked={allFilteredSelected}
                   onCheckedChange={(checked) => handleToggleSelectAllFiltered(Boolean(checked))}
                 />
-                <span>筛选结果 {filteredAccounts.length} 个</span>
+                <span>Filtered: {filteredAccounts.length} </span>
               </div>
-              <span>已选 {selectedIds.length} 个</span>
+              <span>Selected: {selectedIds.length} </span>
             </div>
             <div className="max-h-[420px] overflow-auto">
               {pagedAccounts.length === 0 ? (
-                <div className="flex items-center justify-center py-12 text-sm text-stone-400">没有匹配的账号</div>
+                <div className="flex items-center justify-center py-12 text-sm text-stone-400">No matchingAccount</div>
               ) : (
                 <div className="divide-y divide-stone-100">
                   {pagedAccounts.map((item) => (
@@ -823,7 +823,7 @@ export function Sub2APIConnections() {
                         </div>
                         <div className="truncate text-xs text-stone-400">
                           id {item.id}
-                          {item.expires_at ? ` · 过期 ${item.expires_at}` : ""}
+                          {item.expires_at ? ` · Expired ${item.expires_at}` : ""}
                         </div>
                       </div>
                     </label>
@@ -835,8 +835,8 @@ export function Sub2APIConnections() {
 
           <div className="flex items-center justify-between text-sm text-stone-500">
             <span>
-              第 {filteredAccounts.length === 0 ? 0 : (safeAccountPage - 1) * currentPageSize + 1} -{" "}
-              {Math.min(safeAccountPage * currentPageSize, filteredAccounts.length)} 条，共 {filteredAccounts.length} 条
+              Showing {filteredAccounts.length === 0 ? 0 : (safeAccountPage - 1) * currentPageSize + 1} -{" "}
+              {Math.min(safeAccountPage * currentPageSize, filteredAccounts.length)} of {filteredAccounts.length} items
             </span>
             <div className="flex items-center gap-2">
               <Button
@@ -845,7 +845,7 @@ export function Sub2APIConnections() {
                 onClick={() => setAccountPage((prev) => Math.max(1, prev - 1))}
                 disabled={safeAccountPage <= 1}
               >
-                上一页
+                Previous
               </Button>
               <span>
                 {safeAccountPage}/{accountPageCount}
@@ -856,7 +856,7 @@ export function Sub2APIConnections() {
                 onClick={() => setAccountPage((prev) => Math.min(accountPageCount, prev + 1))}
                 disabled={safeAccountPage >= accountPageCount}
               >
-                下一页
+                Next
               </Button>
             </div>
           </div>
@@ -868,7 +868,7 @@ export function Sub2APIConnections() {
               onClick={() => setBrowserOpen(false)}
               disabled={isStartingImport}
             >
-              取消
+              Cancel
             </Button>
             <Button
               className="h-10 rounded-xl bg-stone-950 px-5 text-white hover:bg-stone-800"
@@ -876,7 +876,7 @@ export function Sub2APIConnections() {
               disabled={isStartingImport || selectedIds.length === 0}
             >
               {isStartingImport ? <LoaderCircle className="size-4 animate-spin" /> : <Import className="size-4" />}
-              导入选中账号
+              Import Selected Accounts
             </Button>
           </DialogFooter>
         </DialogContent>

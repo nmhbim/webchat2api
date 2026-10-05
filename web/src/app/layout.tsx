@@ -4,7 +4,7 @@ import "./globals.css";
 import { TopNav } from "@/components/top-nav";
 
 export const metadata: Metadata = {
-  title: "webchat2api 管理后台",
+  title: "webchat2api Admin Dashboard",
   description: "webchat2api management dashboard",
   icons: {
     icon: [
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className="antialiased"
         style={{

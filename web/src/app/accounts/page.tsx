@@ -68,12 +68,19 @@ import type { AccountProviderDefinition, ProviderId } from "@/providers/types";
 
 import { AccountImportDialog } from "./components/account-import-dialog";
 
+const statusLabelMap: Record<AccountStatus, string> = {
+  正常: "Active",
+  限流: "Rate Limited",
+  异常: "Abnormal",
+  禁用: "Disabled",
+};
+
 const accountStatusOptions: { label: string; value: AccountStatus | "all" }[] = [
-  { label: "全部状态", value: "all" },
-  { label: "正常", value: "正常" },
-  { label: "限流", value: "限流" },
-  { label: "异常", value: "异常" },
-  { label: "禁用", value: "禁用" },
+  { label: "All Statuses", value: "all" },
+  { label: "Active", value: "正常" },
+  { label: "Rate Limited", value: "限流" },
+  { label: "Abnormal", value: "异常" },
+  { label: "Disabled", value: "禁用" },
 ];
 
 const statusMeta: Record<
@@ -90,14 +97,14 @@ const statusMeta: Record<
 };
 
 const metricCards = [
-  { key: "total", label: "账户总数", color: "text-stone-900", icon: UserRound },
-  { key: "active", label: "正常账户", color: "text-emerald-600", icon: CheckCircle2 },
-  { key: "limited", label: "限流账户", color: "text-orange-500", icon: CircleAlert },
-  { key: "abnormal", label: "异常账户", color: "text-rose-500", icon: CircleOff },
-  { key: "disabled", label: "禁用账户", color: "text-stone-500", icon: Ban },
+  { key: "total", label: "Total Accounts", color: "text-stone-900", icon: UserRound },
+  { key: "active", label: "Active Accounts", color: "text-emerald-600", icon: CheckCircle2 },
+  { key: "limited", label: "Rate Limited Accounts", color: "text-orange-500", icon: CircleAlert },
+  { key: "abnormal", label: "Abnormal Accounts", color: "text-rose-500", icon: CircleOff },
+  { key: "disabled", label: "Disabled Accounts", color: "text-stone-500", icon: Ban },
   {
     key: "quota",
-    label: getAccountProviderDefinition("gpt").quota.metricLabel ?? "GPT 图像额度",
+    label: getAccountProviderDefinition("gpt").quota.metricLabel ?? "GPT Image Quota",
     color: "text-amber-600",
     icon: RefreshCw,
   },
@@ -151,7 +158,7 @@ function formatQuota(account: Account) {
     return "∞";
   }
   if (imageQuotaUnknown(account)) {
-    return "未知";
+    return "Unknown";
   }
   return String(Math.max(0, account.quota));
 }
@@ -170,7 +177,7 @@ function formatRestoreAt(value?: string | null) {
   const totalHours = Math.ceil(diffMs / (1000 * 60 * 60));
   const days = Math.floor(totalHours / 24);
   const hours = totalHours % 24;
-  const relative = diffMs > 0 ? `剩余 ${days}d ${hours}h` : "已到恢复时间";
+  const relative = diffMs > 0 ? `${days}d ${hours}h remaining` : "Reset time reached";
 
   const pad = (num: number) => String(num).padStart(2, "0");
   const absolute = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -189,7 +196,7 @@ function formatQuotaSummary(accounts: Account[]) {
     return "∞";
   }
   if (availableQuotaAccounts.some(imageQuotaUnknown)) {
-    return "未知";
+    return "Unknown";
   }
   return formatCompact(availableQuotaAccounts.reduce((sum, account) => sum + Math.max(0, account.quota), 0));
 }
@@ -260,7 +267,7 @@ function accountTokenDisplay(account: Account) {
   const token = accountToken(account);
   if (token) return maskAccountToken(token);
   const providerDefinition = getAccountProviderDefinition(account.provider);
-  return !token && isGeminiAccount(account) && account.has_gemini_session ? providerDefinition.tokenHiddenLabel : "凭据已隐藏";
+  return !token && isGeminiAccount(account) && account.has_gemini_session ? providerDefinition.tokenHiddenLabel : "Credentials hidden";
 }
 
 function accountTokens(accounts: Account[]) {
@@ -393,7 +400,7 @@ function ProviderAccountSection({
   const selectedDeleteCount = accountSelectionCount(selectedPayloads);
   const limitedTokens = accountTokens(accounts.filter((item) => item.status === "限流"));
   const typeOptions = [
-    { label: "全部计划/池", value: "all" },
+    { label: "All Plans/Pools", value: "all" },
     ...Array.from(new Set(accounts.map(displayAccountType))).map((type) => ({ label: type, value: type })),
   ];
   const allCurrentSelected =
@@ -430,9 +437,9 @@ function ProviderAccountSection({
       <div className="flex flex-col gap-4 border-b border-stone-100 px-4 py-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-semibold tracking-tight text-stone-950">{provider.label} 账号</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-stone-950">{provider.label} Account</h2>
             <Badge variant={provider.badgeVariant} className="rounded-md px-2.5 py-1">
-              {accounts.length} 个
+              {accounts.length} 
             </Badge>
           </div>
           <p className="max-w-2xl text-sm leading-6 text-stone-500">{provider.accountInfoHelp}</p>
@@ -443,7 +450,7 @@ function ProviderAccountSection({
             <Input
               value={filters.query}
               onChange={(event) => onFilterChange({ query: event.target.value })}
-              placeholder="搜索邮箱"
+              placeholder="Search email"
               className="h-10 rounded-xl border-stone-200 bg-white/90 pl-10 shadow-sm"
             />
           </div>
@@ -493,7 +500,7 @@ function ProviderAccountSection({
             disabled={selectedValidateCount === 0 || isValidating}
           >
             {isValidating ? <LoaderCircle className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-            验证所选 Grok 账号
+            Verify Selected Grok
           </Button>
         ) : null}
         <Button
@@ -503,7 +510,7 @@ function ProviderAccountSection({
           disabled={limitedTokens.length === 0 || isDeleting}
         >
           {isDeleting ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-          移除本组限流账号
+          Remove Rate Limited
         </Button>
         <Button
           variant="ghost"
@@ -512,7 +519,7 @@ function ProviderAccountSection({
           disabled={selectedDeleteCount === 0 || isDeleting}
         >
           {isDeleting ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-          删除本组所选
+          Delete Selected
         </Button>
         <Button
           variant="ghost"
@@ -525,7 +532,7 @@ function ProviderAccountSection({
         </Button>
         {selectedIds.length > 0 ? (
           <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm">
-            本组已选择 {selectedIds.length} 项
+            Selected in group: {selectedIds.length}
           </span>
         ) : null}
       </div>
@@ -538,14 +545,14 @@ function ProviderAccountSection({
                 <Checkbox checked={allCurrentSelected} onCheckedChange={(checked) => toggleSelectAll(Boolean(checked))} />
               </th>
               <th className="w-56 px-4 py-3">token</th>
-              <th className="w-28 px-4 py-3">计划/池</th>
-              <th className="w-24 px-4 py-3">状态</th>
-              <th className="w-56 px-4 py-3">账号信息</th>
-              <th className="w-24 px-4 py-3">额度</th>
-              <th className="w-40 px-4 py-3">恢复时间</th>
-              <th className="w-18 px-4 py-3">成功</th>
-              <th className="w-18 px-4 py-3">失败</th>
-              <th className="w-24 px-4 py-3">操作</th>
+              <th className="w-28 px-4 py-3">Plan/Pool</th>
+              <th className="w-24 px-4 py-3">Status</th>
+              <th className="w-56 px-4 py-3">account info</th>
+              <th className="w-24 px-4 py-3">Quota</th>
+              <th className="w-40 px-4 py-3">Reset Time</th>
+              <th className="w-18 px-4 py-3">Success</th>
+              <th className="w-18 px-4 py-3">Failed</th>
+              <th className="w-24 px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -571,7 +578,7 @@ function ProviderAccountSection({
                   <td className="px-4 py-3">
                     <span
                       className="max-w-[240px] truncate rounded-lg bg-stone-100/70 px-2 py-1 font-medium tracking-tight text-stone-700"
-                      title={token ? "完整 token 已隐藏，请使用导出功能获取凭据" : tokenDisplay}
+                      title={token ? "Full token hidden; use Export feature to view credentials" : tokenDisplay}
                     >
                       {tokenDisplay}
                     </span>
@@ -587,7 +594,7 @@ function ProviderAccountSection({
                   <td className="px-4 py-3">
                     <Badge variant={status.badge} className="inline-flex items-center gap-1 rounded-md px-2 py-1 shadow-sm">
                       <StatusIcon className="size-3.5" />
-                      {account.status}
+                      {statusLabelMap[account.status] || account.status}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
@@ -596,13 +603,13 @@ function ProviderAccountSection({
                       <div className="text-stone-400">{displayAccountProvider(account)} scoped account</div>
                       {accountProviderId(account) === "grok" && (
                         <div className="mt-1 flex flex-col gap-0.5 rounded-md bg-stone-50/50 p-1.5 text-[10px] text-stone-400 border border-stone-100/50">
-                          {account.state_reason && <div className="font-medium text-stone-500">原因: {account.state_reason}</div>}
-                          {account.last_check_status && <div>探测: {account.last_check_status} {account.last_check_http_status ? `(${account.last_check_http_status})` : ''}</div>}
-                          {account.last_check_error && <div className="text-rose-400/80 truncate" title={account.last_check_error}>报错: {account.last_check_error}</div>}
-                          {account.last_check_at && <div>检查: {new Date(account.last_check_at).toLocaleString()}</div>}
-                          {account.last_success_at && <div>成功: {new Date(account.last_success_at).toLocaleString()}</div>}
-                          {account.refresh_backoff_until && new Date(account.refresh_backoff_until).getTime() > Date.now() && <div>退避至: {new Date(account.refresh_backoff_until).toLocaleString()}</div>}
-                          {account.cooldown_until && new Date(account.cooldown_until).getTime() > Date.now() && <div>冷却至: {new Date(account.cooldown_until).toLocaleString()}</div>}
+                          {account.state_reason && <div className="font-medium text-stone-500">Reason: {account.state_reason}</div>}
+                          {account.last_check_status && <div>Probe: {account.last_check_status} {account.last_check_http_status ? `(${account.last_check_http_status})` : ''}</div>}
+                          {account.last_check_error && <div className="text-rose-400/80 truncate" title={account.last_check_error}>Error: {account.last_check_error}</div>}
+                          {account.last_check_at && <div>Check: {new Date(account.last_check_at).toLocaleString()}</div>}
+                          {account.last_success_at && <div>Success: {new Date(account.last_success_at).toLocaleString()}</div>}
+                          {account.refresh_backoff_until && new Date(account.refresh_backoff_until).getTime() > Date.now() && <div>Backoff until: {new Date(account.refresh_backoff_until).toLocaleString()}</div>}
+                          {account.cooldown_until && new Date(account.cooldown_until).getTime() > Date.now() && <div>Cooldown until: {new Date(account.cooldown_until).toLocaleString()}</div>}
                         </div>
                       )}
                     </div>
@@ -666,8 +673,8 @@ function ProviderAccountSection({
               <Search className="size-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-stone-700">没有匹配的 {provider.label} 账户</p>
-              <p className="text-sm text-stone-500">调整本组筛选条件或导入新的账号。</p>
+              <p className="text-sm font-medium text-stone-700">No matching {provider.label} accounts</p>
+              <p className="text-sm text-stone-500">Adjust filter conditions or import new accounts.</p>
             </div>
           </div>
         ) : null}
@@ -676,9 +683,9 @@ function ProviderAccountSection({
       <div className="border-t border-stone-100 bg-stone-50/30 px-4 py-4">
         <div className="flex items-center justify-start gap-3 overflow-x-auto whitespace-nowrap md:justify-center">
           <div className="shrink-0 text-sm text-stone-500">
-            显示第 {filteredAccounts.length === 0 ? 0 : startIndex + 1} - {Math.min(startIndex + Number(pageSize), filteredAccounts.length)} 条，共 {filteredAccounts.length} 条
+            Showing {filteredAccounts.length === 0 ? 0 : startIndex + 1} - {Math.min(startIndex + Number(pageSize), filteredAccounts.length)} of {filteredAccounts.length} items
           </div>
-          <span className="shrink-0 text-sm leading-none text-stone-500">{page} / {pageCount} 页</span>
+          <span className="shrink-0 text-sm leading-none text-stone-500">Page {page} of {pageCount}</span>
           <Button
             variant="outline"
             size="icon"
@@ -749,7 +756,7 @@ function AccountsPageContent() {
       setAccounts(items);
       setSelectedIds((prev) => keepProviderSelection(prev, items));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载账户失败";
+      const message = error instanceof Error ? error.message : "Failed to load accounts";
       toast.error(message);
     } finally {
       if (!silent) {
@@ -828,7 +835,7 @@ function AccountsPageContent() {
 
   const handleDeleteTokens = async (provider: ProviderId, payload: AccountDeletePayload) => {
     if (payload.tokens.length === 0 && payload.identifiers.length === 0) {
-      toast.error(`请先选择要删除的 ${getAccountProviderLabel(provider)} 账户`);
+      toast.error(`Please select accounts to delete from ${getAccountProviderLabel(provider)} accounts`);
       return;
     }
 
@@ -836,9 +843,9 @@ function AccountsPageContent() {
     try {
       const data = await deleteAccounts(payload, provider);
       handleProviderMutationResult(provider, data.items);
-      toast.success(`删除 ${data.removed ?? 0} 个 ${getAccountProviderLabel(provider)} 账户`);
+      toast.success(`Delete ${data.removed ?? 0}  ${getAccountProviderLabel(provider)} accounts`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "删除账户失败";
+      const message = error instanceof Error ? error.message : "Failed to delete accounts";
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -848,7 +855,7 @@ function AccountsPageContent() {
   const handleDeleteLimitedAccounts = async (provider: ProviderId) => {
     const limitedTokens = accountTokens(providerRows[provider].accounts.filter((item) => item.status === "限流"));
     if (limitedTokens.length === 0) {
-      toast.error(`没有限流 ${getAccountProviderLabel(provider)} 账户可移除`);
+      toast.error(`No rate limited accounts in ${getAccountProviderLabel(provider)} available to remove`);
       return;
     }
 
@@ -856,9 +863,9 @@ function AccountsPageContent() {
     try {
       const data = await deleteLimitedAccounts(provider);
       handleProviderMutationResult(provider, data.items);
-      toast.success(`移除 ${data.removed ?? 0} 个限流 ${getAccountProviderLabel(provider)} 账户`);
+      toast.success(`Removed ${data.removed ?? 0} rate-limited ${getAccountProviderLabel(provider)} accounts`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "移除限流账户失败";
+      const message = error instanceof Error ? error.message : "Failed to remove rate limited accounts";
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -872,7 +879,7 @@ function AccountsPageContent() {
       return;
     }
     if (accountSelectionCount(payload) === 0) {
-      toast.error(`没有可刷新的 ${providerDefinition.label} 账户`);
+      toast.error(`No accounts to refresh for ${providerDefinition.label} accounts`);
       return;
     }
 
@@ -881,11 +888,11 @@ function AccountsPageContent() {
       const data = await refreshAccounts(payload, provider);
       handleProviderMutationResult(provider, data.items);
       if (provider === "grok") {
-         const summary = `检查 ${data.checked ?? 0} 个，更新 ${data.refreshed ?? 0} 个，状态保持 ${data.unchanged ?? 0} 个，失败 ${data.failed ?? 0} 个`;
-         const explanation = (data.unchanged ?? 0) > 0 ? " (Cloudflare/上游检查不可用不等于账号失效)" : "";
+         const summary = `Checked ${data.checked ?? 0}, updated ${data.refreshed ?? 0}, unchanged ${data.unchanged ?? 0}, failed ${data.failed ?? 0}`;
+         const explanation = (data.unchanged ?? 0) > 0 ? " (Cloudflare/upstream check unavailable does not mean invalid account)" : "";
          if (data.errors.length > 0) {
            const firstError = data.errors[0]?.error;
-           toast.error(`${summary}${explanation}${firstError ? `，首个错误：${firstError}` : ""}`);
+           toast.error(`${summary}${explanation}${firstError ? `, First error: ${firstError}` : ""}`);
          } else {
            toast.success(`${summary}${explanation}`);
          }
@@ -893,14 +900,14 @@ function AccountsPageContent() {
         if (data.errors.length > 0) {
           const firstError = data.errors[0]?.error;
           toast.error(
-            `刷新成功 ${data.refreshed} 个 ${providerDefinition.label} 账户，失败 ${data.errors.length} 个${firstError ? `，首个错误：${firstError}` : ""}`,
+            `Successfully refreshed ${data.refreshed} ${providerDefinition.label} accounts, failed ${data.errors.length}${firstError ? `, First error: ${firstError}` : ""}`,
           );
         } else {
-          toast.success(`刷新成功 ${data.refreshed} 个 ${providerDefinition.label} 账户`);
+          toast.success(`Successfully refreshed ${data.refreshed} ${providerDefinition.label} accounts`);
         }
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : `刷新 ${providerDefinition.label} 账户失败`;
+      const message = error instanceof Error ? error.message : `Failed to refresh ${providerDefinition.label} accounts`;
       toast.error(message);
     } finally {
       setIsRefreshing(false);
@@ -909,11 +916,11 @@ function AccountsPageContent() {
 
   const handleValidateAccounts = async (provider: ProviderId, payload: AccountSelectionPayload) => {
     if (provider !== "grok") {
-      toast.error("当前仅支持验证 Grok 账号");
+      toast.error("Currently only Grok accounts support verification");
       return;
     }
     if (accountSelectionCount(payload) === 0) {
-      toast.error("请先选择要验证的 Grok 账号");
+      toast.error("Please select Grok accounts to verify");
       return;
     }
 
@@ -921,16 +928,16 @@ function AccountsPageContent() {
     try {
       const data = await validateAccounts(payload, provider);
       handleProviderMutationResult(provider, data.items);
-      const summary = `检查 ${data.checked} 个，正常 ${data.valid} 个，异常 ${data.invalid} 个，限流 ${data.limited} 个，未验证 ${data.unverified} 个`;
-      const explanation = data.unverified > 0 ? " (未验证指 Cloudflare/Browser Bridge/网络探测等不可用，非凭据无效)" : "";
+      const summary = `Checked ${data.checked}, valid ${data.valid}, invalid ${data.invalid}, rate-limited ${data.limited}, unverified ${data.unverified}`;
+      const explanation = data.unverified > 0 ? " (Unverified means Cloudflare/Browser Bridge/probe unavailable, not invalid credentials)" : "";
       const firstError = validationErrorMessage(data.errors[0]);
       if (data.errors.length > 0) {
-        toast.error(`${summary}${explanation}${firstError ? `，首个错误：${firstError}` : ""}`);
+        toast.error(`${summary}${explanation}${firstError ? `, First error: ${firstError}` : ""}`);
       } else {
         toast.success(`${summary}${explanation}`);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "验证 Grok 账号失败";
+      const message = error instanceof Error ? error.message : "Failed to verify Grok accounts";
       toast.error(message);
     } finally {
       setIsValidating(false);
@@ -950,7 +957,7 @@ function AccountsPageContent() {
     const provider = accountProviderId(editingAccount);
     const token = accountToken(editingAccount);
     if (!token) {
-      toast.error("脱敏账号不能在列表中直接编辑，请重新导入或通过后端管理接口处理");
+      toast.error("Masked accounts cannot be edited directly in list; re-import or use backend admin API");
       return;
     }
 
@@ -959,9 +966,9 @@ function AccountsPageContent() {
       const data = await updateAccount(token, { status: editStatus }, provider);
       handleProviderMutationResult(provider, data.items);
       setEditingAccount(null);
-      toast.success("账号状态已更新");
+      toast.success("Account status updated");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "更新账号失败";
+      const message = error instanceof Error ? error.message : "Failed to update account";
       toast.error(message);
     } finally {
       setIsUpdating(false);
@@ -971,7 +978,7 @@ function AccountsPageContent() {
   const handleExportAccounts = async (provider: AccountExportProvider, payload: AccountSelectionPayload) => {
     if (!accountProviderSupportsTokenExport(provider, payload.tokens.length, payload.identifiers.length)) {
       const label = accountExportProviderLabel(provider);
-      toast.error(`没有可导出的 ${label} 账户`);
+      toast.error(`No exportable accounts for ${label} accounts`);
       return;
     }
 
@@ -980,9 +987,9 @@ function AccountsPageContent() {
       const data = await exportAccounts(provider, payload);
       downloadBlob(data.blob, data.filename);
       const label = accountExportProviderLabel(provider);
-      toast.success(`${label} TXT 文件已导出`);
+      toast.success(`${label} TXT file exported successfully`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "导出账户失败";
+      const message = error instanceof Error ? error.message : "Failed to export accounts";
       toast.error(message);
     } finally {
       setIsExporting(false);
@@ -995,8 +1002,8 @@ function AccountsPageContent() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="text-xs font-semibold tracking-[0.18em] text-stone-500 uppercase">Account Pool</div>
-            <h1 className="text-2xl font-semibold tracking-tight text-stone-950">号池管理</h1>
-            <p className="max-w-2xl text-sm leading-6 text-stone-500">GPT、Grok、Gemini 分组管理，批量操作只作用于当前服务商。</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-stone-950">Account Pool</h1>
+            <p className="max-w-2xl text-sm leading-6 text-stone-500">Grouped management for GPT, Grok, and Gemini. Batch operations only apply to selected provider.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/70 bg-white/45 p-2 shadow-sm">
@@ -1007,7 +1014,7 @@ function AccountsPageContent() {
               disabled={isLoading || isRefreshing || isValidating || isDeleting}
             >
               <RefreshCw className={cn("size-4", isLoading ? "animate-spin" : "")} />
-              刷新全部
+              Refresh All
             </Button>
             <Button
               variant="outline"
@@ -1035,13 +1042,13 @@ function AccountsPageContent() {
       <Dialog open={Boolean(editingAccount)} onOpenChange={(open) => (!open ? setEditingAccount(null) : null)}>
         <DialogContent showCloseButton={false} className="rounded-2xl p-6">
           <DialogHeader className="gap-2">
-            <DialogTitle>编辑账户状态</DialogTitle>
+            <DialogTitle>Edit Account Status</DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              当前账号归属 {editingAccount ? getAccountProviderLabel(editingAccount.provider) : ""}；更新请求会按该服务商定位账号。
+              Current account belongs to {editingAccount ? getAccountProviderLabel(editingAccount.provider) : ""}; update requests locate account by this provider.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-stone-700">状态</label>
+            <label className="text-sm font-medium text-stone-700">Status</label>
             <Select value={editStatus} onValueChange={(value) => setEditStatus(value as AccountStatus)}>
               <SelectTrigger className="h-11 rounded-xl border-stone-200 bg-white">
                 <SelectValue />
@@ -1064,11 +1071,11 @@ function AccountsPageContent() {
               onClick={() => setEditingAccount(null)}
               disabled={isUpdating}
             >
-              取消
+              Cancel
             </Button>
             <Button className="h-10 rounded-xl bg-stone-950 px-5 text-white hover:bg-stone-800" onClick={() => void handleUpdateAccount()} disabled={isUpdating}>
               {isUpdating ? <LoaderCircle className="size-4 animate-spin" /> : null}
-              保存修改
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1097,7 +1104,7 @@ function AccountsPageContent() {
           })}
         </div>
         <p className="rounded-2xl border border-white/60 bg-white/45 px-4 py-2 text-xs leading-5 text-stone-500 shadow-sm">
-          Token 仅以遮蔽形式展示；导出操作按当前服务商执行。GPT 图像额度仅统计正常 GPT 账号。
+          Tokens are masked for security. Export operations apply to active provider. GPT quota only counts active GPT accounts.
         </p>
       </section>
 
@@ -1128,8 +1135,8 @@ function AccountsPageContent() {
                 <LoaderCircle className="size-5 animate-spin" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-medium text-stone-700">正在加载账户</p>
-                <p className="text-sm text-stone-500">按服务商同步账号列表和状态。</p>
+                <p className="text-sm font-medium text-stone-700">Loading accounts...</p>
+                <p className="text-sm text-stone-500">Syncing account list and status by provider.</p>
               </div>
             </CardContent>
           </Card>

@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 import { clearStoredAuthSession, type StoredAuthSession } from "@/store/auth";
 
 const adminNavItems = [
-  { href: "/image", label: "试验" },
-  { href: "/accounts", label: "号池管理" },
-  { href: "/image-manager", label: "图片管理" },
-  { href: "/logs", label: "日志管理" },
-  { href: "/settings", label: "设置" },
+  { href: "/image", label: "Playground" },
+  { href: "/accounts", label: "Accounts" },
+  { href: "/image-manager", label: "Images" },
+  { href: "/logs", label: "Logs" },
+  { href: "/settings", label: "Settings" },
 ];
 
-const userNavItems = [{ href: "/image", label: "试验" }];
+const userNavItems = [{ href: "/image", label: "Playground" }];
 
 export function TopNav() {
   const pathname = usePathname();
@@ -60,7 +60,7 @@ export function TopNav() {
   }
 
   const navItems = session.role === "admin" ? adminNavItems : userNavItems;
-  const roleLabel = session.role === "admin" ? "管理员" : "普通用户";
+  const roleLabel = session.role === "admin" ? "Admin" : "User";
   const displayName = session.name.trim() || roleLabel;
 
   return (
@@ -70,7 +70,7 @@ export function TopNav() {
           <Link
             href="/image"
             className="group inline-flex shrink-0 items-center gap-2 rounded-full py-1 pr-2 text-[15px] font-bold tracking-tight text-foreground transition hover:text-primary"
-            aria-label="webchat2api 管理后台首页"
+            aria-label="webchat2api Dashboard"
           >
             <Image
               src="/webchat2api-logo.png"
@@ -99,7 +99,7 @@ export function TopNav() {
             className="ml-auto shrink-0 rounded-full border border-white/70 bg-card/60 px-2.5 py-1 text-xs text-muted-foreground shadow-sm transition hover:bg-card hover:text-foreground sm:hidden"
             onClick={() => void handleLogout()}
           >
-            退出
+            Logout
           </button>
         </div>
         <nav className="hide-scrollbar -mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:gap-1.5 sm:overflow-visible sm:px-0">
@@ -137,7 +137,7 @@ export function TopNav() {
             className="rounded-full border border-transparent px-2.5 py-1 text-xs text-muted-foreground transition hover:border-white/75 hover:bg-card/70 hover:text-foreground hover:shadow-sm sm:text-sm"
             onClick={() => void handleLogout()}
           >
-            退出
+            Logout
           </button>
         </div>
       </div>

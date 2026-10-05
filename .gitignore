@@ -61,3 +61,15 @@ docs/review.md
 compose.override.yml
 docker-compose.override.yml
 docker-compose-local.yml
+
+# Temporary translation scripts and text dumps
+scripts/all_chinese_words.txt
+scripts/all_remaining_lines.txt
+scripts/dump_remaining.py
+scripts/extract_strings.py
+scripts/extracted_lines.json
+scripts/group*.txt
+scripts/providers_lines.txt
+scripts/trans_map.py
+scripts/translate_*.py
+

@@ -24,7 +24,7 @@ export const accountImportProviderOptions: ImportProviderOption[] = accountProvi
 }));
 
 export const accountProviderFilterOptions: { label: string; value: AccountProvider | "all" }[] = [
-  { label: "全部服务", value: "all" },
+  { label: "All Providers", value: "all" },
   ...accountProviderDefinitions.map((provider) => ({ label: provider.filterLabel, value: provider.id })),
 ];
 
@@ -47,11 +47,11 @@ export function getAccountProviderDefinition(provider: AccountProvider | null | 
     id: normalized as ProviderId,
     label: normalized,
     filterLabel: normalized,
-    exportButtonLabel: `导出 ${normalized} TXT`,
-    selectedExportButtonLabel: `导出所选 ${normalized} TXT`,
+    exportButtonLabel: `Export ${normalized.toUpperCase()} TXT`,
+    selectedExportButtonLabel: `Export Selected ${normalized.toUpperCase()} TXT`,
     refresh: {
       enabled: false,
-      rowTitle: `${normalized} 账号当前不支持账号刷新`,
+      rowTitle: `${normalized.toUpperCase()} accounts currently do not support refresh`,
     },
     quota: {
       applicable: false,
@@ -64,8 +64,8 @@ export function getAccountProviderDefinition(provider: AccountProvider | null | 
       textFallbackModels: [],
       textFallbackMode: "always",
       imageFallbackModels: [],
-      imageUnsupportedCopy: `${normalized} 暂未配置图像试验能力。`,
-      imageNoMetadataCopy: `${normalized} 暂未配置图像试验能力。`,
+      imageUnsupportedCopy: `${normalized.toUpperCase()} does not support image generation playground.`,
+      imageNoMetadataCopy: `${normalized.toUpperCase()} does not support image generation playground.`,
       modelIdPrefixes: [normalized],
       textModelPrefixes: [],
       imageModelKeywords: [],

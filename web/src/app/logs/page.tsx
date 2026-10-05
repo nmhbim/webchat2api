@@ -53,8 +53,8 @@ const LogType = {
 } as const;
 
 const typeLabels: Record<string, string> = {
-  [LogType.Call]: "调用日志",
-  [LogType.Account]: "账号管理日志",
+  [LogType.Call]: "API Call Logs",
+  [LogType.Account]: "Account Logs",
 };
 
 function getDetailText(item: SystemLog, key: string) {
@@ -78,8 +78,8 @@ function getUrls(item: SystemLog | null) {
 
 function getStatus(item: SystemLog) {
   const status = item.detail?.status;
-  if (status === "success") return "成功";
-  if (status === "failed") return "失败";
+  if (status === "success") return "Success";
+  if (status === "failed") return "Failed";
   return "-";
 }
 
@@ -131,7 +131,7 @@ function LogsContent() {
       );
       setPage(1);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "加载日志失败");
+      toast.error(error instanceof Error ? error.message : "Failed to load logs");
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +167,7 @@ function LogsContent() {
     setIsDeleting(true);
     try {
       const data = await deleteSystemLogs(ids);
-      toast.success(`已删除 ${data.removed} 条日志`);
+      toast.success(`Deleted ${data.removed} log(s)`);
       setDeletingItems([]);
       setSelectedIds((current) => current.filter((id) => !ids.includes(id)));
       if (detailLog && ids.includes(detailLog.id)) {
@@ -176,7 +176,7 @@ function LogsContent() {
       }
       await loadLogs();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "删除日志失败");
+      toast.error(error instanceof Error ? error.message : "Failed to delete logs");
     } finally {
       setIsDeleting(false);
     }
@@ -194,7 +194,7 @@ function LogsContent() {
             Logs
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-stone-950">
-            日志管理
+            System Logs
           </h1>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:items-center">
@@ -203,8 +203,8 @@ function LogsContent() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={LogType.Call}>调用日志</SelectItem>
-              <SelectItem value={LogType.Account}>账号管理日志</SelectItem>
+              <SelectItem value={LogType.Call}>API Call Logs</SelectItem>
+              <SelectItem value={LogType.Account}>Account Logs</SelectItem>
             </SelectContent>
           </Select>
           <DateRangeFilter
@@ -220,7 +220,7 @@ function LogsContent() {
             onClick={clearFilters}
             className="h-10 rounded-xl border-stone-200 bg-white/90 px-4 text-stone-700 shadow-sm hover:bg-white"
           >
-            清除筛选条件
+            Clear Filters
           </Button>
           <Button
             onClick={() => void loadLogs()}
@@ -232,7 +232,7 @@ function LogsContent() {
             ) : (
               <Search className="size-4" />
             )}
-            查询
+            Search
           </Button>
         </div>
       </div>
@@ -240,7 +240,7 @@ function LogsContent() {
       <div className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white/72">
         <div className="flex flex-col gap-3 border-b border-stone-200/70 bg-stone-50/45 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3 text-sm text-stone-600">
-            <span>共 {items.length} 条</span>
+            <span>Total: {items.length} logs</span>
             <label className="flex items-center gap-2">
               <Checkbox
                 checked={currentPageSelected}
@@ -251,7 +251,7 @@ function LogsContent() {
                   )
                 }
               />
-              本页全选
+              Select Page
             </label>
             <label className="flex items-center gap-2">
               <Checkbox
@@ -263,11 +263,11 @@ function LogsContent() {
                   )
                 }
               />
-              全选结果
+              Select All
             </label>
             {selectedIds.length > 0 ? (
               <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold text-stone-600 shadow-sm">
-                已选 {selectedIds.length} 条
+                Selected: {selectedIds.length} items
               </span>
             ) : null}
           </div>
@@ -281,7 +281,7 @@ function LogsContent() {
               <RefreshCw
                 className={`size-4 ${isLoading ? "animate-spin" : ""}`}
               />
-              刷新
+              Refresh
             </Button>
             <button
               type="button"
@@ -289,7 +289,7 @@ function LogsContent() {
               onClick={() => setSelectedIds([])}
               disabled={selectedIds.length === 0 || isDeleting}
             >
-              取消选择
+              Deselect All
             </button>
             <Button
               variant="outline"
@@ -302,7 +302,7 @@ function LogsContent() {
               disabled={selectedIds.length === 0 || isDeleting}
             >
               <Trash2 className="size-4" />
-              删除所选
+              Delete Selected
             </Button>
           </div>
         </div>
@@ -311,16 +311,16 @@ function LogsContent() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead>时间</TableHead>
-                <TableHead>类型</TableHead>
-                {isCallLog ? <TableHead>令牌名称</TableHead> : null}
-                {isCallLog ? <TableHead>调用耗时</TableHead> : null}
-                {isCallLog ? <TableHead>状态</TableHead> : null}
+                <TableHead>Time</TableHead>
+                <TableHead>Type</TableHead>
+                {isCallLog ? <TableHead>Key Name</TableHead> : null}
+                {isCallLog ? <TableHead>Duration</TableHead> : null}
+                {isCallLog ? <TableHead>Status</TableHead> : null}
                 {isCallLog ? (
-                  <TableHead className="w-36">图片</TableHead>
+                  <TableHead className="w-36">Images</TableHead>
                 ) : null}
-                <TableHead>简述</TableHead>
-                <TableHead className="w-40">操作</TableHead>
+                <TableHead>Summary</TableHead>
+                <TableHead className="w-40">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -380,7 +380,7 @@ function LogsContent() {
                                 type="button"
                                 className="relative size-9 overflow-hidden rounded-lg border border-stone-200 bg-stone-100 shadow-sm transition hover:scale-105"
                                 onClick={() => openLogImage(item, imageIndex)}
-                                title="预览图片"
+                                title="Preview Image"
                               >
                                 <ImageThumbnail
                                   src={url}
@@ -412,14 +412,14 @@ function LogsContent() {
                           className="h-8 rounded-lg px-3 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                           onClick={() => openDetail(item)}
                         >
-                          查看详情
+                          Details
                         </Button>
                         <Button
                           variant="ghost"
                           className="h-8 rounded-lg px-3 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                           onClick={() => setDeletingItems([item])}
                         >
-                          删除
+                          Delete
                         </Button>
                       </div>
                     </TableCell>
@@ -431,7 +431,7 @@ function LogsContent() {
         </div>
         <div className="flex flex-col gap-3 border-t border-stone-200/70 bg-stone-50/45 px-4 py-3 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-end">
           <span>
-            第 {safePage} / {pageCount} 页，共 {items.length} 条
+            Page {safePage} of {pageCount} ({items.length} total)
           </span>
           <Button
             variant="outline"
@@ -458,8 +458,8 @@ function LogsContent() {
               <Search className="size-5" />
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-stone-700">没有找到日志</p>
-              <p>调整日期或日志类型后重试。</p>
+              <p className="font-medium text-stone-700">No logs found</p>
+              <p>Try adjusting the date range or log type.</p>
             </div>
           </div>
         ) : null}
@@ -467,7 +467,7 @@ function LogsContent() {
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="flex h-[min(88vh,860px)] w-[min(92vw,920px)] flex-col overflow-hidden rounded-2xl border-stone-200 bg-white p-0 shadow-sm">
           <DialogHeader className="shrink-0 border-b border-stone-100 px-6 py-5">
-            <DialogTitle>日志详情</DialogTitle>
+            <DialogTitle>Log Details</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-5">
             <div className="space-y-4">
@@ -531,10 +531,10 @@ function LogsContent() {
         <DialogContent showCloseButton={false} className="rounded-2xl p-6">
           <DialogHeader className="gap-2">
             <DialogTitle>
-              {deletingItems.length === 1 ? "删除日志" : "删除所选日志"}
+              {deletingItems.length === 1 ? "Delete Log" : "Delete Selected Logs"}
             </DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              确认删除 {deletingItems.length} 条日志吗？删除后无法恢复。
+              Are you sure you want to delete {deletingItems.length} log(s)? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -544,7 +544,7 @@ function LogsContent() {
               onClick={() => setDeletingItems([])}
               disabled={isDeleting}
             >
-              取消
+              Cancel
             </Button>
             <Button
               className="rounded-xl bg-rose-600 text-white hover:bg-rose-700"
@@ -554,7 +554,7 @@ function LogsContent() {
               {isDeleting ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : null}
-              确认删除
+              Are you sure you want to delete
             </Button>
           </DialogFooter>
         </DialogContent>
